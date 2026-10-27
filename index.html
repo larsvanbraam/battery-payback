@@ -115,7 +115,7 @@
       <section class="panel" aria-labelledby="ranking-title">
         <div class="panel-head">
           <h2 id="ranking-title">Every battery at its most profitable size</h2>
-          <span class="panel-meta">Sorted by profit after <span class="lifetime-years">15</span> years · click a row</span>
+          <span class="panel-meta" id="ranking-sorted">Sorted by profit after 15 years · click a column to sort, a row to pick</span>
         </div>
         <div class="table-wrap">
           <table class="table ranking">
@@ -123,13 +123,13 @@
               <tr>
                 <th scope="col">Battery</th>
                 <th scope="col" class="num">Size</th>
-                <th scope="col" class="num">Price</th>
-                <th scope="col" class="num">Saves a year</th>
-                <th scope="col" class="num">Paid back in</th>
-                <th scope="col" class="num">Profit after <span class="lifetime-years">15</span> yrs</th>
+                <th scope="col" class="num" data-sort="price"><button type="button" class="sort">Price</button></th>
+                <th scope="col" class="num" data-sort="saving"><button type="button" class="sort">Saves a year</button></th>
+                <th scope="col" class="num" data-sort="payback"><button type="button" class="sort">Paid back in</button></th>
+                <th scope="col" class="num" data-sort="profit"><button type="button" class="sort">Profit after <span class="lifetime-years">15</span> yrs</button></th>
                 <th scope="col" class="num wide-only">Efficiency 800 / 200 W</th>
                 <th scope="col" class="num wide-only">Standby</th>
-                <th scope="col" class="num wide-only">Warranty</th>
+                <th scope="col" class="num wide-only" data-sort="warranty"><button type="button" class="sort">Warranty</button></th>
               </tr>
             </thead>
             <tbody id="ranking-body"></tbody>

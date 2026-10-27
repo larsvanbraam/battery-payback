@@ -190,6 +190,11 @@ input[type="file"] { font: inherit; font-size: 13px; max-width: 100%; }
 .ranking tbody tr.pick.active:hover td { background: var(--data-pale); }
 .ranking tbody tr.pick:focus-visible { outline: 2px solid var(--data); outline-offset: -2px; }
 .ranking td:first-child { white-space: normal; min-width: 180px; }
+.ranking th .sort { all: unset; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.ranking th .sort:hover { color: var(--text); }
+.ranking th .sort:focus-visible { outline: 2px solid var(--data); outline-offset: 2px; }
+.ranking th[aria-sort] .sort { color: var(--text); font-weight: 500; text-decoration: none; }
+.ranking th[aria-sort] .sort::after { content: ' ↓'; }
 .ranking strong { font-weight: 500; }
 .show-all { align-self: flex-start; }
 .pill { display: inline-block; font-size: 11px; line-height: 18px; font-weight: 500; padding: 0 6px; border-radius: var(--radius-chip); background: var(--data-pale); color: var(--data); white-space: nowrap; margin-left: 6px; }

@@ -18,6 +18,16 @@ const DEFAULT_SCENARIO = 'eneco_1y';
 const DEFAULT_BATTERY = 'homewizard';
 const RANKING_ROWS = 5;
 
+// Each column sorts its best value first; ties keep the profit order. No payback sorts last.
+type RankingSort = 'price' | 'saving' | 'payback' | 'profit' | 'warranty';
+const RANKING_SORTS: Record<RankingSort, { label: () => string; order: 'ascending' | 'descending'; value: (r: RankedBattery) => number }> = {
+  price: { label: () => 'lowest price', order: 'ascending', value: (r) => r.costEur },
+  saving: { label: () => 'saving a year', order: 'descending', value: (r) => -r.savingEur },
+  payback: { label: () => 'fastest payback', order: 'ascending', value: (r) => r.paybackYears ?? Infinity },
+  profit: { label: () => `profit after ${state.lifetimeYears} years`, order: 'descending', value: (r) => -r.lifetimeResultEur },
+  warranty: { label: () => 'longest warranty', order: 'descending', value: (r) => -r.battery.warrantyYears },
+};
+
 // What-if presets, in slider units (percent). "Realistic" follows typical battery ageing,
 // a modest price rise and the shortfall hourly data tends to hide.
 const WHAT_IF_PRESETS = [
@@ -45,6 +55,7 @@ interface State {
   priceOverrides: Record<string, number>;
   whatIfPreset: string | null;
   rankingExpanded: boolean;
+  rankingSort: RankingSort;
   whatIf: Record<WhatIfKey, number>;
   simsById: Map<string, Sim[]>;
   profile: ReturnType<typeof dailyProfile>;
@@ -66,6 +77,7 @@ const state: State = {
   priceOverrides: {},
   whatIfPreset: 'realistic',
   rankingExpanded: false,
+  rankingSort: 'profit',
   whatIf: { ...WHAT_IF_PRESETS.find((p) => p.id === 'realistic')!.values },
   simsById: new Map(),
   profile: [],
@@ -271,16 +283,27 @@ function bindSourceTips() {
   window.addEventListener('scroll', hideSourceTip, { passive: true, capture: true });
 }
 
+// The best buy stays the most profitable battery; sorting only changes the order of the rows.
 function renderRanking(ranking: RankedBattery[]) {
   const top = ranking[0];
   const maxAbs = Math.max(...ranking.map((r) => Math.abs(r.lifetimeResultEur)));
-  $('ranking-body').replaceChildren(...ranking.map((r) => {
+  const sort = RANKING_SORTS[state.rankingSort];
+  const rows = [...ranking].sort((a, b) => {
+    const x = sort.value(a), y = sort.value(b);
+    return x === y ? 0 : x < y ? -1 : 1;
+  });
+  $('ranking-sorted').textContent = `Sorted by ${sort.label()} · click a column to sort, a row to pick`;
+  for (const th of document.querySelectorAll<HTMLElement>('.ranking th[data-sort]')) {
+    if (th.dataset.sort === state.rankingSort) th.setAttribute('aria-sort', sort.order);
+    else th.removeAttribute('aria-sort');
+  }
+  $('ranking-body').replaceChildren(...rows.map((r) => {
     const b = r.battery;
     const tr = document.createElement('tr');
     tr.tabIndex = 0;
     tr.className = 'pick' + (b.id === state.batteryId ? ' active' : '');
     // The top few answer the question; the chosen battery stays visible wherever it ranks.
-    tr.hidden = !state.rankingExpanded && ranking.indexOf(r) >= RANKING_ROWS && b.id !== state.batteryId;
+    tr.hidden = !state.rankingExpanded && rows.indexOf(r) >= RANKING_ROWS && b.id !== state.batteryId;
     tr.title = `Show ${b.name} below`;
 
     const name = document.createElement('td');
@@ -620,6 +643,9 @@ function bindControls() {
   onNumber('instalment', (v) => { state.monthlyInstalmentEur = v; });
   onNumber('discount', (v) => { state.yearlyDiscountEur = v; });
   $('ranking-toggle').addEventListener('click', () => { state.rankingExpanded = !state.rankingExpanded; render(); });
+  for (const th of document.querySelectorAll<HTMLElement>('.ranking th[data-sort]')) {
+    th.querySelector('button')!.addEventListener('click', () => { state.rankingSort = th.dataset.sort as RankingSort; render(); });
+  }
   input('tariff-select').addEventListener('change', () => { applyScenario(input('tariff-select').value); render(); });
   input('p1-owned').addEventListener('change', () => { state.p1Owned = input('p1-owned').checked; render(); });
   input('battery-select').addEventListener('change', () => { selectBattery(input('battery-select').value); render(); });
