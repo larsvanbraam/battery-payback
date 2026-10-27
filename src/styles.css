@@ -206,6 +206,8 @@ input[type="file"] { font: inherit; font-size: 13px; max-width: 100%; }
 .flag.assumed { background: var(--notice-bg); color: var(--notice-ink); }
 .flag[data-tip] { cursor: help; }
 .flag.p1 { color: var(--text); }
+.flag.weight { color: var(--text); }
+.flag.weight.heavy { background: var(--notice-bg); color: var(--notice-ink); }
 .flag.p1.owned { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
 .flag.p1.owned::before { content: '✓ '; }
 .source-tip {
@@ -357,6 +359,10 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
   .whatif-body { grid-template-columns: minmax(0, 1fr); }
   .sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; }
   .wide-only { display: none; }
+}
+/* Ranking rows stay on one line, so its last three columns go a little before the rest of the page's. */
+@media (max-width: 1199px) {
+  .ranking .wide-only { display: none; }
 }
 @media (max-width: 860px) {
   .import-options { grid-template-columns: minmax(0, 1fr); }

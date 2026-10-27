@@ -17,6 +17,8 @@ inject({ mode: import.meta.env.DEV ? 'development' : 'production' });
 const DEFAULT_SCENARIO = 'eneco_1y';
 const DEFAULT_BATTERY = 'homewizard';
 const RANKING_ROWS = 5;
+// From this weight a battery's weight label turns amber: it takes two people to move.
+const HEAVY_KG = 40;
 
 // Each column sorts its best value first; ties keep the profit order. No payback sorts last.
 type RankingSort = 'price' | 'saving' | 'payback' | 'profit' | 'warranty';
@@ -104,8 +106,10 @@ function configName(b: Battery, n: number) {
   return n === 1 ? `the ${b.brand}` : `${n} ${b.brand} batteries`;
 }
 
+// Short, so the ranking's payback column stays narrow: no saving means it never pays back.
 function paybackText(years: number | null) {
-  return years && years <= state.lifetimeYears ? `${fmt.years(years)} years` : `Not within ${state.lifetimeYears} years`;
+  if (!years) return 'Never';
+  return years <= state.lifetimeYears ? `${fmt.years(years)} years` : `Over ${state.lifetimeYears} years`;
 }
 
 function runSimulation() {
@@ -221,6 +225,20 @@ function p1Flag(b: Battery) {
   return flag;
 }
 
+// The battery's weight at the size the ranking shows; heavy ones stand out.
+function weightFlag(b: Battery, units: number) {
+  const kg = Math.round(b.weightKg * units);
+  const heavy = kg >= HEAVY_KG;
+  const each = units > 1 ? ` in total (${units} × ${b.weightKg} kg)` : '';
+  const tip = `Weighs ${kg} kg${each} and measures ${b.sizeCm} cm per unit, according to the ${b.sizeSource}.` +
+    (heavy ? ' Plan on two people to move it.' : ' One person can carry it.');
+  const flag = sourceFlag('weight', tip);
+  flag.classList.toggle('heavy', heavy);
+  flag.textContent = `${kg} kg`;
+  flag.setAttribute('aria-label', `${kg} kg: ${tip}`);
+  return flag;
+}
+
 const LOW_POWER_EXPLAINED = 'Tweakers found that the batteries it tested keep on average 76% of their 800 W efficiency at 200 W, and 94% at 500 W.';
 
 function efficiencyTip(b: Battery) {
@@ -331,6 +349,7 @@ function renderRanking(ranking: RankedBattery[]) {
       badges.append(pill);
     }
     if (b.homewizardP1) badges.append(p1Flag(b));
+    if (b.weightKg) badges.append(weightFlag(b, r.units));
     if (badges.childElementCount) name.append(badges);
 
     const cells: (HTMLElement | string | (string | HTMLElement)[] | null)[] = [
@@ -516,12 +535,19 @@ function meterText(b: Battery, { short = false } = {}) {
   return b.homewizardP1 && !isHomeWizard ? `${price}; a HomeWizard P1 meter also works` : price;
 }
 
+function sizeText(b: Battery) {
+  if (!b.weightKg) return 'Not found';
+  const one = `${b.sizeCm} cm, ${b.weightKg} kg, from the ${b.sizeSource}`;
+  return state.units > 1 ? `${one}; ${state.units} together weigh ${Math.round(b.weightKg * state.units)} kg` : one;
+}
+
 function renderSpecs() {
   const b = activeBattery();
   const src = (s: string) => (({ tweakers: ' (measured by Tweakers)', tweakers_home: ' (measured by Tweakers at home, average over all power levels)', review: ' (measured in a review)', manufacturer: ' (manufacturer)', assumed: ' (assumed)' } as Record<string, string>)[s] ?? '');
   const curve = b.rteCurve.map(([kw, r]) => `${pct(r)} at ${fmt.watts(kw)}`).join(' · ');
   const items: [string, string | { href: string; text: string }][] = [
     ['Storage per battery', `${b.unitKwh} kWh, of which ${(b.unitKwh * b.usableShare).toFixed(1)} kWh usable${src(b.capacitySource)}`],
+    ['Size and weight', sizeText(b)],
     ['Charge power', fmt.watts(b.chargeKw)],
     ['Discharge power', fmt.watts(b.dischargeKw)],
     ['Extra batteries add power', b.maxUnits === 1 ? 'Not compared' : b.powerScales ? 'Yes' : 'No, only storage'],

@@ -45,6 +45,10 @@ export interface Battery {
   priceSource: string;
   reviewUrl: string;
   notes: string;
+  /** Outside size of one unit in cm, in the order the source gives it. */
+  sizeCm: string;
+  weightKg: number;
+  sizeSource: string;
 }
 
 export interface Prices {
@@ -233,6 +237,9 @@ export function toBatteries(rows: CsvRow[]): Battery[] {
     priceSource: r.price_source,
     reviewUrl: r.review_url,
     notes: r.notes,
+    sizeCm: r.size_cm ?? '',
+    weightKg: Number(r.weight_kg ?? 0),
+    sizeSource: r.size_source ?? '',
   }));
 }
 
