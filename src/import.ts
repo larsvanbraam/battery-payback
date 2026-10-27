@@ -96,6 +96,7 @@ export function renderDataStatus(data: LoadedData) {
   $('data-badge').classList.toggle('own', !data.isSample);
   $('sample-banner').hidden = !data.isSample;
   $('data-actions').hidden = data.isSample;
+  $('export-data').hidden = data.isSample;
 }
 
 // Saves what was loaded and hands it to the page; refuses data too short to say anything useful.
@@ -252,15 +253,17 @@ export function bindImport(show: OnData) {
     });
   }
 
-  $('download-data').addEventListener('click', () => {
-    const stored = loadDataset();
-    if (!stored) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([toCsv(stored.rows)], { type: 'text/csv' }));
-    a.download = `${stored.source === 'file' ? 'meter-data' : stored.source}-hourly.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  });
+  for (const button of all('js-download-data')) {
+    button.addEventListener('click', () => {
+      const stored = loadDataset();
+      if (!stored) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([toCsv(stored.rows)], { type: 'text/csv' }));
+      a.download = `${stored.source === 'file' ? 'meter-data' : stored.source}-hourly.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
 
   $('forget-data').addEventListener('click', () => {
     clearDataset();

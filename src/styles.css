@@ -95,7 +95,10 @@ body.loading .canvas { opacity: .55; }
 .scope { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-chip); background: var(--active); color: var(--text); white-space: nowrap; }
 .scope.own { background: var(--data-pale); color: var(--data); }
 .topbar-meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.topbar .btn-primary { margin-left: auto; flex: none; }
+.topbar .btn { flex: none; }
+/* The actions sit on the right; Export CSV leads them when it shows. */
+.topbar #export-data, .topbar .btn-primary { margin-left: auto; }
+.topbar #export-data:not([hidden]) + .btn-primary { margin-left: 0; }
 
 .canvas {
   max-width: calc(1152px + 2 * 24px); margin-inline: auto; padding: 32px 24px 64px;
@@ -347,6 +350,9 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
 @media (max-width: 640px) {
   .topbar-inner { padding: 0 16px; height: 48px; gap: 8px; }
   .topbar-meta, .scope { display: none; }
+  /* No room next to the brand; the data dialog has the same download. */
+  .topbar #export-data { display: none; }
+  .topbar #export-data:not([hidden]) + .btn-primary { margin-left: auto; }
   .brand span { font-size: 14px; }
   .canvas { padding: 20px 16px 48px; }
   .title-row { flex-direction: column; align-items: stretch; }

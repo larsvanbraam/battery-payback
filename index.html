@@ -25,6 +25,7 @@
       </nav>
       <span class="scope app-only" id="data-badge">Sample household</span>
       <span class="topbar-meta app-only" id="topbar-period"></span>
+      <button type="button" class="btn app-only js-download-data" id="export-data" hidden>Export CSV</button>
       <button type="button" class="btn btn-primary app-only" id="open-data">Load your data</button>
     </div>
   </header>
@@ -354,7 +355,7 @@
     <div class="sheet-foot">
       <p class="hint">Your data is stored only in this browser, so the page remembers it next time.</p>
       <div class="data-actions" id="data-actions" hidden>
-        <button type="button" class="btn" id="download-data">Download as CSV</button>
+        <button type="button" class="btn js-download-data">Download as CSV</button>
         <button type="button" class="btn btn-danger" id="forget-data">Forget my data</button>
       </div>
     </div>
