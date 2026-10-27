@@ -189,7 +189,10 @@ input[type="file"] { font: inherit; font-size: 13px; max-width: 100%; }
 .ranking tbody tr.pick:hover td { background: var(--raised); }
 .ranking tbody tr.pick.active:hover td { background: var(--data-pale); }
 .ranking tbody tr.pick:focus-visible { outline: 2px solid var(--data); outline-offset: -2px; }
-.ranking td:first-child { white-space: normal; min-width: 180px; }
+.ranking td { height: 58px; }
+.ranking td:first-child { min-width: 180px; }
+.ranking .badges { display: flex; gap: 4px; margin-top: 2px; }
+.ranking .badges :is(.flag, .pill) { margin-left: 0; }
 .ranking th .sort { all: unset; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .ranking th .sort:hover { color: var(--text); }
 .ranking th .sort:focus-visible { outline: 2px solid var(--data); outline-offset: 2px; }
@@ -202,6 +205,9 @@ input[type="file"] { font: inherit; font-size: 13px; max-width: 100%; }
 .flag.tweakers, .flag.tweakers_home { color: var(--text); }
 .flag.assumed { background: var(--notice-bg); color: var(--notice-ink); }
 .flag[data-tip] { cursor: help; }
+.flag.p1 { color: var(--text); }
+.flag.p1.owned { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
+.flag.p1.owned::before { content: '✓ '; }
 .source-tip {
   position: fixed; z-index: 20; max-width: min(320px, calc(100vw - 16px)); pointer-events: none;
   background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-control);

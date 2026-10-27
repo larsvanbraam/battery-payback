@@ -196,7 +196,7 @@ function renderScenario() {
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
-const FLAG_LABELS: Record<string, string> = { tweakers: 'Tweakers', tweakers_home: 'Tweakers', review: 'review', manufacturer: 'manufacturer', assumed: 'assumed' };
+const FLAG_LABELS: Record<string, string> = { tweakers: 'Tweakers', tweakers_home: 'Tweakers', review: 'review', manufacturer: 'manufacturer', assumed: 'assumed', p1: 'HomeWizard P1' };
 
 // One label per value saying where it comes from, with a tooltip that explains how it was gathered.
 function sourceFlag(source: string, tip: string) {
@@ -208,6 +208,17 @@ function sourceFlag(source: string, tip: string) {
   s.setAttribute('role', 'note');
   s.setAttribute('aria-label', `${s.textContent}: ${tip}`);
   return s;
+}
+
+// Marks a battery that can read a HomeWizard P1 meter, so the meter checkbox's effect on its price is visible.
+function p1Flag(b: Battery) {
+  const meter = b.meter === 'HomeWizard P1 meter' ? 'a new one' : `the ${b.meter}`;
+  const tip = state.p1Owned
+    ? `Uses the HomeWizard P1 meter you already have, so the ${fmt.eur(b.meterEur)} for ${meter} isn't in the price.`
+    : `Can use a HomeWizard P1 meter. The price now includes ${fmt.eur(b.meterEur)} for the ${b.meter}; tick "I have a HomeWizard P1 meter" above if you own one and it drops out.`;
+  const flag = sourceFlag('p1', tip);
+  flag.classList.toggle('owned', state.p1Owned);
+  return flag;
 }
 
 const LOW_POWER_EXPLAINED = 'Tweakers found that the batteries it tested keep on average 76% of their 800 W efficiency at 200 W, and 94% at 500 W.';
@@ -310,12 +321,17 @@ function renderRanking(ranking: RankedBattery[]) {
     const strong = document.createElement('strong');
     strong.textContent = b.name;
     name.append(strong);
+    // Labels sit on their own line under the name, so the name never wraps around them.
+    const badges = document.createElement('div');
+    badges.className = 'badges';
     if (r === top) {
       const pill = document.createElement('span');
       pill.className = 'pill';
       pill.textContent = 'Best buy';
-      name.append(' ', pill);
+      badges.append(pill);
     }
+    if (b.homewizardP1) badges.append(p1Flag(b));
+    if (badges.childElementCount) name.append(badges);
 
     const cells: (HTMLElement | string | (string | HTMLElement)[] | null)[] = [
       name,
