@@ -1,0 +1,4 @@
+scenario,label,import_eur_kwh,feedin_eur_kwh,feedin_cost_eur_kwh,net_export_eur_kwh,note
+eneco_1y,"Eneco, 1 year fixed",0.33347,0.0890,0.0453,0.0437,Import price from eneco.nl (16 Oct 2026); feed-in terms via comparison sites
+eneco_3y,"Eneco, 3 years fixed",0.28584,0.0890,0.0453,0.0437,Import price from eneco.nl (16 Oct 2026); feed-in terms via comparison sites
+stress,If you get 7 ct back,0.28584,,,0.0700,Stress test: getting more for exported power makes a battery worth less

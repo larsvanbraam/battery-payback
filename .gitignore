@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+dist/
+.vercel/
+
+# Personal meter data and old prototypes stay on this machine only.
+private/
+artifact/
+
+# Design skill (reinstall: npx skills add https://github.com/Leonxlnx/taste-skill --skill design-taste-frontend) and its screenshots.
+.agents/
+.claude/skills/
+.taste-skill/

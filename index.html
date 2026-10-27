@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Battery Payback</title>
+  <meta name="description" content="Which home battery pays for itself on your own hourly meter data, once saldering ends in 2027.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body class="loading">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="Battery payback, home">
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="17" height="12" rx="2"/><rect x="20" y="10" width="2" height="4" rx="1"/><rect class="mark-fill" x="4" y="8" width="8" height="8" rx="1"/></svg>
+        <span>Battery payback</span>
+      </a>
+      <span class="scope" id="data-badge">Sample household</span>
+      <span class="topbar-meta" id="topbar-period"></span>
+      <button type="button" class="btn btn-primary" id="open-data">Load your data</button>
+    </div>
+  </header>
+
+  <main id="app" class="canvas">
+    <div class="title-row">
+      <div>
+        <h1>Which battery pays for itself</h1>
+        <p class="finding" id="takeaway">Replaying a year of meter data…</p>
+        <p class="notice" id="sample-banner" hidden>This is a made-up household. <button type="button" class="link" data-open-data>Load your own meter data</button> to see your numbers.</p>
+      </div>
+    </div>
+
+    <div class="pricebar" role="group" aria-labelledby="scenarios-label">
+      <span class="field-label" id="scenarios-label">Prices from 2027</span>
+      <div class="segmented" id="scenarios" role="group" aria-labelledby="scenarios-label"></div>
+      <label class="inline-field" for="import-price">Grid price <span class="hint">€/kWh</span>
+        <input id="import-price" type="number" step="0.001" min="0" inputmode="decimal">
+      </label>
+      <label class="inline-field" for="feedin-value">Sent back earns <span class="hint">€/kWh</span>
+        <input id="feedin-value" type="number" step="0.001" inputmode="decimal">
+      </label>
+      <label class="check" for="p1-owned" id="p1-row">
+        <input id="p1-owned" type="checkbox" checked>
+        <span>I have a HomeWizard P1 meter <span class="hint">(else +<span id="p1-price">—</span>)</span></span>
+      </label>
+      <span class="custom-flag" id="custom-flag" hidden>Your own prices</span>
+    </div>
+
+      <section class="panel" aria-labelledby="ranking-title">
+        <div class="panel-head">
+          <h2 id="ranking-title">Every battery at its most profitable size</h2>
+          <span class="panel-meta">Sorted by profit after <span class="lifetime-years">15</span> years · click a row</span>
+        </div>
+        <div class="table-wrap">
+          <table class="table ranking">
+            <thead>
+              <tr>
+                <th scope="col">Battery</th>
+                <th scope="col" class="num">Size</th>
+                <th scope="col" class="num">Price</th>
+                <th scope="col" class="num">Saves a year</th>
+                <th scope="col" class="num">Paid back in</th>
+                <th scope="col" class="num">Profit after <span class="lifetime-years">15</span> yrs</th>
+                <th scope="col" class="num wide-only">Efficiency 800 / 200 W</th>
+                <th scope="col" class="num wide-only">Standby</th>
+                <th scope="col" class="num wide-only">Warranty</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+        <button type="button" class="btn show-all" id="ranking-toggle" hidden></button>
+        <p class="panel-note">Efficiency is how much stored power comes back out; it drops at low power, which matters at night when a house draws a steady 200–300 W. The label next to each value says where it comes from: hover or tap it for details. Prices checked October 2026.</p>
+      </section>
+
+    <section class="panel chosen" aria-labelledby="chosen-title">
+      <div class="panel-head">
+        <h2 id="chosen-title">With <span class="config-name">this battery</span>, over the year of data</h2>
+      </div>
+      <div class="setup" aria-label="Your battery">
+        <label for="battery-select">Battery
+          <select id="battery-select"></select>
+        </label>
+        <label for="units-select">How many
+          <select id="units-select"></select>
+        </label>
+        <label for="unit-price">Price of the first one (€)
+          <input id="unit-price" type="number" step="5" min="0" inputmode="numeric">
+        </label>
+        <label for="lifetime">Years you'll use it
+          <input id="lifetime" type="number" step="1" min="1" max="30" value="15" inputmode="numeric">
+        </label>
+      </div>
+      <div class="kpis">
+        <div class="kpi lead">
+          <span class="kpi-label">Saves per year</span>
+          <span class="kpi-value money" id="tile-saving">—</span>
+          <span class="kpi-sub"><span id="tile-saving-month">—</span> a month · <span id="tile-saving-day">—</span> a day</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Paid back in</span>
+          <span class="kpi-value" id="tile-payback">—</span>
+          <span class="kpi-sub">Price <span id="tile-price">—</span><span id="tile-p1"></span></span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Power cost in 2027 without a battery</span>
+          <span class="kpi-value" id="tile-bill">—</span>
+          <span class="kpi-sub">Grid power minus what exports earn</span>
+        </div>
+      </div>
+      <div class="flow" id="flow" aria-label="Where your solar surplus goes over the year"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="daily-title">
+      <div class="panel-head">
+        <h2 id="daily-title">Saved per day</h2>
+        <span class="panel-meta">One bar per day · the line is the weekly average</span>
+      </div>
+      <p class="panel-note" id="daily-note"></p>
+      <div class="chart" id="daily-chart"></div>
+    </section>
+
+    <div class="row row-even">
+      <section class="panel" aria-labelledby="monthly-title">
+        <div class="panel-head">
+          <h2 id="monthly-title">Solar the battery keeps, per month</h2>
+          <div class="legend">
+            <span><i style="background: var(--series-grey)"></i>Sent to the grid without a battery</span>
+            <span><i style="background: var(--data)"></i>Kept by the battery</span>
+          </div>
+        </div>
+        <div class="chart" id="monthly-chart"></div>
+      </section>
+      <section class="panel" aria-labelledby="profile-title">
+        <div class="panel-head">
+          <h2 id="profile-title">Your average day</h2>
+          <div class="legend">
+            <span><i style="background: var(--series-ink)"></i>From the grid</span>
+            <span><i style="background: var(--series-grey)"></i>Sent to the grid</span>
+          </div>
+        </div>
+                <div class="chart" id="profile-chart"></div>
+        <p class="panel-note"><span id="tile-export">—</span> kWh of solar went to the grid; <span class="config-name">this battery</span> would have kept <span id="tile-used">—</span> kWh of it.</p>
+      </section>
+    </div>
+
+    <section class="panel whatif" aria-labelledby="whatif-title">
+      <div class="panel-head">
+        <h2 id="whatif-title">If the next <span class="lifetime-years">15</span> years aren't like last year</h2>
+        <div class="segmented" id="whatif-presets" role="group" aria-label="Scenarios"></div>
+      </div>
+      <div class="whatif-body">
+        <div class="sliders">
+          <label class="slider" for="wi-usage">
+            <span class="slider-head">Your electricity use <output id="wi-usage-out" for="wi-usage"></output></span>
+            <input id="wi-usage" type="range" min="-30" max="50" step="5" value="0">
+            <span class="hint">An EV, a heat pump or more people at home add evening use the battery can cover.</span>
+          </label>
+          <label class="slider" for="wi-solar">
+            <span class="slider-head">Solar left over <output id="wi-solar-out" for="wi-solar"></output></span>
+            <input id="wi-solar" type="range" min="-30" max="30" step="5" value="0">
+            <span class="hint">A cloudy year or ageing panels give less; extra panels give more.</span>
+          </label>
+          <label class="slider" for="wi-price">
+            <span class="slider-head">Grid price change <output id="wi-price-out" for="wi-price"></output></span>
+            <input id="wi-price" type="range" min="-5" max="8" step="0.5" value="0">
+          </label>
+          <label class="slider" for="wi-ageing">
+            <span class="slider-head">Battery ageing <output id="wi-ageing-out" for="wi-ageing"></output></span>
+            <input id="wi-ageing" type="range" min="0" max="5" step="0.5" value="0">
+            <span class="hint">At 2% a year it still holds about 75% after 15 years.</span>
+          </label>
+          <label class="slider" for="wi-shortfall">
+            <span class="slider-head">Real-world shortfall <output id="wi-shortfall-out" for="wi-shortfall"></output></span>
+            <input id="wi-shortfall" type="range" min="0" max="20" step="1" value="0">
+            <span class="hint">The battery reacts late and misses short peaks: 5–10% is realistic.</span>
+          </label>
+        </div>
+        <div class="whatif-result">
+          <div class="kpis kpis-4">
+            <div class="kpi"><span class="kpi-label">First year</span><span class="kpi-value small money" id="wi-first">—</span><span class="kpi-sub" id="wi-first-delta"></span></div>
+            <div class="kpi"><span class="kpi-label">Over <span class="lifetime-years">15</span> years</span><span class="kpi-value small money" id="wi-total">—</span><span class="kpi-sub" id="wi-total-delta"></span></div>
+            <div class="kpi"><span class="kpi-label">Paid back in</span><span class="kpi-value small" id="wi-payback">—</span><span class="kpi-sub" id="wi-payback-delta"></span></div>
+            <div class="kpi"><span class="kpi-label">Profit</span><span class="kpi-value small money" id="wi-result">—</span><span class="kpi-sub" id="wi-result-delta"></span></div>
+          </div>
+          <div class="legend">
+            <span><i style="background: var(--data)"></i>This scenario</span>
+            <span><i class="dashed-swatch"></i>Same as last year</span>
+          </div>
+          <div class="chart" id="whatif-chart"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="row row-even">
+      <section class="panel" aria-labelledby="table-title">
+        <div class="panel-head">
+          <h2 id="table-title">How many to buy</h2>
+          <span class="panel-meta">Power cost excludes fixed costs and the tax refund</span>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Batteries</th>
+                <th scope="col" class="num">Storage</th>
+                <th scope="col" class="num">Power cost a year</th>
+                <th scope="col" class="num">Saves a year</th>
+                <th scope="col" class="num">Price</th>
+                <th scope="col" class="num">Paid back in</th>
+                <th scope="col" class="num">Profit after <span class="lifetime-years">15</span> yrs</th>
+              </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+          </table>
+        </div>
+        <h3 class="sub-title" id="size-title">Profit after <span class="lifetime-years">15</span> years, by size</h3>
+        <div class="chart" id="size-chart"></div>
+      </section>
+      <section class="panel" aria-labelledby="contract-title">
+        <div class="panel-head">
+          <h2 id="contract-title">Your supplier's bill, with and without it</h2>
+        </div>
+        <div class="fields fields-2">
+          <label for="instalment">Monthly payment <span class="hint">€ (termijnbedrag)</span>
+            <input id="instalment" type="number" step="1" min="0" value="65" inputmode="numeric">
+          </label>
+          <label for="discount">Welcome discount <span class="hint">€ off per year</span>
+            <input id="discount" type="number" step="5" min="0" value="150" inputmode="numeric">
+          </label>
+        </div>
+        <dl class="ledger">
+          <div><dt>Monthly payments × 12</dt><dd id="ledger-instalments">—</dd></div>
+          <div><dt>Welcome discount</dt><dd id="ledger-discount">—</dd></div>
+          <div class="subtotal"><dt>You pay per year without a battery</dt><dd><span id="ledger-yearly">—</span> <small id="ledger-yearly-month">—</small></dd></div>
+          <div><dt>Saved by <span class="config-name">this battery</span></dt><dd id="ledger-saving">—</dd></div>
+          <div class="total"><dt>You pay per year with it</dt><dd><span id="ledger-with">—</span> <small id="ledger-with-month">—</small></dd></div>
+        </dl>
+        <p class="panel-note">The monthly payment is an advance that's settled once a year, so you can lower it by about what the battery saves. The welcome discount comes with or without a battery, so it doesn't speed up the payback.</p>
+      </section>
+    </div>
+
+    <section class="panel specs" aria-labelledby="data-title">
+      <div class="panel-head">
+        <h2 id="data-title" class="spec-heading"><span id="spec-title">Specs used</span></h2>
+      </div>
+      <dl class="assumptions" id="assumptions"></dl>
+      <p class="panel-note" id="spec-notes"></p>
+    </section>
+
+    <section class="panel method" aria-labelledby="method-title">
+      <div class="panel-head">
+        <h2 id="method-title">How it's calculated</h2>
+        <p class="panel-meta data-status" id="data-status"></p>
+      </div>
+      <p class="panel-note">For every hour of the year, solar power you would have sent to the grid charges the battery instead (up to its charge power), and the battery then powers your home (up to its discharge power) until it's empty. Part of the energy is lost on the way, at the efficiency that matches that hour's power.</p>
+      <ul class="caveats">
+        <li>Hourly data hides short spikes above the battery's power (a kettle, the oven), so real savings are likely 5–10% lower.</li>
+        <li>Batteries Tweakers hasn't tested at low power use the average drop of the ones it has.</li>
+        <li>Every battery gets the same lifetime. Check the warranty: a cheap battery that fails early never earns itself back.</li>
+        <li>The price presets are Eneco's 2027 offer; its feed-in terms come from comparison sites (16 Oct 2026). Enter your own supplier's prices above.</li>
+        <li>Dynamic contracts, where a battery also charges on cheap hours, aren't modelled. They would favour bigger batteries.</li>
+      </ul>
+    </section>
+  </main>
+
+  <dialog class="sheet" id="data-card" aria-labelledby="data-card-title">
+    <div class="sheet-head">
+      <h2 id="data-card-title">Your meter data</h2>
+      <button type="button" class="btn" id="close-data">Close</button>
+    </div>
+    <div class="import-progress" id="import-progress" role="status" hidden>
+      <progress id="import-bar"></progress>
+      <span id="import-progress-text"></span>
+    </div>
+    <p class="error" id="data-error" role="alert" hidden></p>
+    <div class="import-options">
+      <div class="import-option">
+        <h3>Fetch a year of hourly data from your supplier</h3>
+        <div class="segmented" id="provider-tabs" role="group" aria-label="Energy supplier"></div>
+        <ol class="steps">
+          <li>Drag this button to your bookmarks bar:
+            <a class="bookmarklet" id="bookmarklet" href="#">Get my data</a>
+            <span class="hint" id="bookmarklet-hint" hidden>Drag it, don't click it: it only works from the bookmarks bar, on the <span class="provider-name"></span> website.</span>
+            <span class="hint">No bookmarks bar? Press Ctrl+Shift+B, or ⌘+Shift+B on a Mac.</span>
+          </li>
+          <li><a id="provider-login" href="#" target="_blank" rel="noopener">Open your account</a> and log in.</li>
+          <li>Click the bookmark. It reads your hourly usage from <span class="provider-name"></span> inside your own browser and opens the results here. Your login and data never pass through this site's server.</li>
+        </ol>
+        <p class="hint">Next time, click the bookmark again and only the new days are fetched. More suppliers will follow.</p>
+      </div>
+      <div class="import-option">
+        <h3>Or upload a file</h3>
+        <label class="file" for="hourly-file">Hourly CSV
+          <span class="hint">Columns timestamp, import_kwh and export_kwh, one row per hour.</span>
+          <input id="hourly-file" type="file" accept=".csv,text/csv">
+        </label>
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <p class="hint">Your data is stored only in this browser, so the page remembers it next time.</p>
+      <div class="data-actions" id="data-actions" hidden>
+        <button type="button" class="btn" id="download-data">Download as CSV</button>
+        <button type="button" class="btn btn-danger" id="forget-data">Forget my data</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>
