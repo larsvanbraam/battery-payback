@@ -105,6 +105,13 @@ body.loading .canvas { opacity: .55; }
   display: flex; flex-direction: column; gap: var(--gap);
 }
 
+/* Footer: what the numbers are, and aren't. */
+.site-foot { border-top: 1px solid var(--border); }
+.site-foot p {
+  max-width: calc(1152px + 2 * 24px); margin: 0 auto; padding: 20px 24px 32px; box-sizing: border-box;
+  font-size: 12px; line-height: 18px; color: var(--muted);
+}
+
 /* Title row */
 .title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; padding-bottom: 8px; }
 h1 { margin: 0; font-size: 30px; line-height: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.04em; }
@@ -355,6 +362,7 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
   .topbar #export-data:not([hidden]) + .btn-primary { margin-left: auto; }
   .brand span { font-size: 14px; }
   .canvas { padding: 20px 16px 48px; }
+  .site-foot p { padding: 16px 16px 24px; }
   .title-row { flex-direction: column; align-items: stretch; }
   h1 { font-size: 22px; line-height: 28px; }
   .setup, .fields { grid-template-columns: minmax(0, 1fr); }

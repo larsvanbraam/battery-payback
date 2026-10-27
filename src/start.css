@@ -22,6 +22,9 @@ body.on-start .app-only { display: none; }
 body.on-start { background: var(--noon); }
 body.on-start .topbar { background: var(--noon); border-bottom: 0; font-family: var(--face); }
 body.on-start .topbar-inner { max-width: none; padding: 0 var(--m); height: 72px; }
+/* The footer carries on the night chapter, below a faint line. */
+body.on-start .site-foot { background: var(--night); border-top-color: var(--night-soft); font-family: var(--face); }
+body.on-start .site-foot p { max-width: 72ch; margin: 0; padding: 24px var(--m) 40px; color: var(--pale-soft); opacity: .75; }
 body.on-start .brand { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.03em; color: var(--night); }
 .start-nav { margin-left: auto; display: flex; align-items: center; gap: 28px; }
 .start-nav a { color: var(--night); font-weight: 700; font-size: 16px; text-decoration: none; }
