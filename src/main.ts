@@ -433,13 +433,14 @@ function renderCharts(rows: CompareRow[]) {
 // What the chosen battery needs to read the meter, and whether that's in its price.
 function meterText(b: Battery, { short = false } = {}) {
   const usesOwn = state.p1Owned && b.homewizardP1;
+  const isHomeWizard = b.meter === 'HomeWizard P1 meter';
   if (short) {
     if (usesOwn) return ' · uses your HomeWizard P1 meter';
     return b.meterEur ? ` · including the ${b.meter} (${fmt.eur(meterPrice(b, opts()))})` : '';
   }
   const price = b.meterEur ? `${b.meter}, ${fmt.eur(b.meterEur)}` : `${b.meter}, included`;
-  if (usesOwn) return b.meter === 'HomeWizard P1 meter' ? 'Your HomeWizard P1 meter' : `Your HomeWizard P1 meter, instead of the ${b.meter}`;
-  return b.homewizardP1 ? `${price}; a HomeWizard P1 meter also works` : price;
+  if (usesOwn) return isHomeWizard ? 'Your HomeWizard P1 meter' : `Your HomeWizard P1 meter, instead of the ${b.meter}`;
+  return b.homewizardP1 && !isHomeWizard ? `${price}; a HomeWizard P1 meter also works` : price;
 }
 
 function renderSpecs() {
