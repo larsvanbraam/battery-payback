@@ -95,7 +95,7 @@ export async function runBookmarklet(provider: ProviderScript) {
   }
 
   // Open the tool straight away: browsers only allow a new tab during the click itself.
-  const app = window.open(`${APP_ORIGIN}/#import=${provider.id}`, '_blank');
+  const app = window.open(`${APP_ORIGIN}/import/${provider.id}`, '_blank');
   const send = (msg: Payload) => {
     try {
       app?.postMessage({ channel: CHANNEL, provider: provider.id, ...msg }, APP_ORIGIN);

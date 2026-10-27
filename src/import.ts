@@ -2,12 +2,13 @@
 // that fetches it from the visitor's energy provider in their own browser. Whatever the visitor loads is
 // remembered in this browser only, so the page shows their own numbers next time. Until something is
 // loaded the page shows a start screen; later the same controls open as a dialog. Both copies of each
-// control are found by a js-* class and kept in step.
+// control are found by a js-* class and kept in step. Which screen shows follows the path (router.ts).
 import { CHANNEL, parseBookmarkletMessage, type HourRow } from './bookmarklet/protocol.ts';
 import {
   clearDataset, haveUntil, loadDataset, mergeRows, saveDataset, toCsv, toHourObjects, toRows, type Dataset,
 } from './dataset.ts';
 import { PROVIDERS, bookmarkletHref, findProvider, type Provider } from './providers/index.ts';
+import { currentRoute, navigate, onRoute, bindInPageLinks, type Route } from './router.ts';
 import { parseCsv, toHours, type Hour } from './simulate.ts';
 
 export interface LoadedData {
@@ -19,25 +20,23 @@ export interface LoadedData {
 
 type OnData = (data: LoadedData) => void;
 
-const SAMPLE_PATH = 'data/sample-hourly.csv';
+const SAMPLE_PATH = '/data/sample-hourly.csv';
 const MIN_HOURS = 24 * 7;
 
 const $ = (id: string) => document.getElementById(id)!;
 const dialog = () => $('data-card') as HTMLDialogElement;
-const SAMPLE_HASH = '#sample';
-
 const all = <T extends HTMLElement = HTMLElement>(cls: string) => [...document.querySelectorAll<T>(`.${cls}`)];
 
-/** Whether the results behind the start screen have data, so "Back to my results" can show. */
-let hasData = false;
+/** What the results screen holds right now, so "Back to my results" and the routes know where to go. */
+let showing: 'sample' | 'own' | null = null;
 
 function openDialog() {
   if (!dialog().open) dialog().showModal();
 }
 
-export function showStart() {
+function showStart() {
   if (dialog().open) dialog().close();
-  $('start-back').hidden = !hasData;
+  $('start-back').hidden = !showing;
   $('start').hidden = false;
   $('app').hidden = true;
   document.body.classList.add('on-start');
@@ -50,8 +49,6 @@ function showResults() {
   document.body.classList.remove('on-start');
 }
 
-const setHash = (hash: string) => history.replaceState(null, '', location.pathname + location.search + hash);
-
 function describe(dataset: Dataset): string {
   return dataset.source === 'file' ? `your file ${dataset.label}` : `your ${dataset.label} data`;
 }
@@ -62,12 +59,9 @@ async function sample(): Promise<LoadedData> {
   return { hours: toHours(parseCsv(await res.text())), label: 'a made-up sample household', isSample: true };
 }
 
-/** What to show straight away: the sample when the link asks for it, else stored data, else nothing (start screen). */
-export async function initialData(): Promise<LoadedData | null> {
-  if (location.hash === SAMPLE_HASH) return sample();
+function storedData(): LoadedData | null {
   const stored = loadDataset();
-  if (stored) return { hours: toHourObjects(stored.rows), label: describe(stored), isSample: false };
-  return null;
+  return stored ? { hours: toHourObjects(stored.rows), label: describe(stored), isSample: false } : null;
 }
 
 function showError(message: string | null) {
@@ -113,8 +107,8 @@ function accept(dataset: Dataset, onData: OnData) {
   const saved = saveDataset(dataset);
   showError(saved ? null : 'Your data is shown, but this browser won\'t let the page remember it for next time.');
   if (saved && dialog().open) dialog().close();
-  if (location.hash === SAMPLE_HASH) setHash('');
   onData({ hours: toHourObjects(dataset.rows), label: describe(dataset), isSample: false });
+  navigate({ name: 'results' }, { replace: location.pathname.startsWith('/import/') });
 }
 
 function renderProviders() {
@@ -158,9 +152,8 @@ function renderProviders() {
 function listenToBookmarklet(provider: Provider, onData: OnData) {
   const opener = window.opener as Window | null;
   if (!opener) return;
-  setHash('');
   // With results already on screen the progress shows over them; on a first visit, on the start screen.
-  if (hasData) openDialog(); else showStart();
+  if (showing) openDialog(); else showStart();
   showError(null);
   showProgress(`Waiting for ${provider.name}…`);
 
@@ -188,33 +181,59 @@ function listenToBookmarklet(provider: Provider, onData: OnData) {
   opener.postMessage(ready, provider.origin);
 }
 
-export function bindImport(show: OnData, initial: LoadedData | null) {
+// Shows what a path asks for. The sample and stored data load only when they aren't on screen already.
+async function showRoute(route: Route, onData: OnData) {
+  showError(null);
+  if (route.name === 'start') {
+    showStart();
+  } else if (route.name === 'sample') {
+    if (showing === 'sample') showResults();
+    else {
+      try {
+        onData(await sample());
+      } catch (err) {
+        showStart();
+        showError(err instanceof Error ? err.message : String(err));
+      }
+    }
+  } else if (route.name === 'results') {
+    const stored = showing === 'own' ? null : storedData();
+    if (showing === 'own') showResults();
+    else if (stored) onData(stored);
+    else navigate({ name: 'start' }, { replace: true });
+  } else {
+    const provider = findProvider(route.provider);
+    const stored = storedData();
+    if (stored) onData(stored);
+    // Only a tab the bookmarklet opened can take its data; anything else is just a visit.
+    if (provider && window.opener) listenToBookmarklet(provider, onData);
+    else navigate(stored ? { name: 'results' } : { name: 'start' }, { replace: true });
+  }
+}
+
+export function bindImport(show: OnData) {
   const onData: OnData = (data) => {
-    hasData = true;
+    showing = data.isSample ? 'sample' : 'own';
     showResults();
     show(data);
   };
   renderProviders();
+  bindInPageLinks();
   $('open-data').addEventListener('click', openDialog);
-  for (const el of document.querySelectorAll('[data-show-start]')) el.addEventListener('click', showStart);
   $('close-data').addEventListener('click', () => dialog().close());
-  $('start-back').addEventListener('click', showResults);
+  for (const el of document.querySelectorAll('[data-show-start]')) {
+    el.addEventListener('click', () => navigate({ name: 'start' }));
+  }
+  $('start-back').addEventListener('click', () => navigate({ name: showing === 'sample' ? 'sample' : 'results' }));
   document.querySelector('.brand')!.addEventListener('click', (ev) => {
     ev.preventDefault();
-    showStart();
+    navigate({ name: 'start' });
   });
   for (const el of document.querySelectorAll('[data-use-sample]')) {
-    el.addEventListener('click', async (ev) => {
+    el.addEventListener('click', (ev) => {
       ev.preventDefault();
-      showError(null);
-      try {
-        const data = await sample();
-        setHash(SAMPLE_HASH);
-        if (dialog().open) dialog().close();
-        onData(data);
-      } catch (err) {
-        showError(err instanceof Error ? err.message : String(err));
-      }
+      if (dialog().open) dialog().close();
+      navigate({ name: 'sample' });
     });
   }
 
@@ -245,16 +264,13 @@ export function bindImport(show: OnData, initial: LoadedData | null) {
 
   $('forget-data').addEventListener('click', () => {
     clearDataset();
-    showError(null);
-    hasData = false;
-    setHash('');
-    showStart();
+    showing = null;
+    navigate({ name: 'start' }, { replace: true });
   });
 
-  if (initial) onData(initial);
-  else showStart();
-
-  const match = location.hash.match(/^#import=([a-z0-9-]+)$/);
-  const provider = match ? findProvider(match[1]) : undefined;
-  if (provider) listenToBookmarklet(provider, onData);
+  onRoute((route) => void showRoute(route, onData));
+  // A returning visitor with stored data skips the start screen.
+  const route = currentRoute();
+  if (route.name === 'start' && loadDataset()) navigate({ name: 'results' }, { replace: true });
+  else void showRoute(route, onData);
 }

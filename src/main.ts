@@ -6,7 +6,7 @@ import {
   type Battery, type CompareRow, type Hour, type RankedBattery, type Sim, type Tariff,
 } from './simulate.ts';
 import { fmt, sizeChart, monthlyChart, profileChart, dailyChart, balanceChart } from './charts.ts';
-import { bindImport, initialData, renderDataStatus, type LoadedData } from './import.ts';
+import { bindImport, renderDataStatus, type LoadedData } from './import.ts';
 import { initStart } from './start.ts';
 
 const DEFAULT_SCENARIO = 'eneco_3y';
@@ -630,10 +630,9 @@ function useData(data: LoadedData) {
 
 async function init() {
   try {
-    const [data, batteries, tariffs] = await Promise.all([
-      initialData(),
-      fetchCsv('data/batteries.csv'),
-      fetchCsv('data/eneco-2027-tariffs.csv'),
+    const [batteries, tariffs] = await Promise.all([
+      fetchCsv('/data/batteries.csv'),
+      fetchCsv('/data/eneco-2027-tariffs.csv'),
     ]);
     state.batteries = toBatteries(batteries);
     state.tariffs = toTariffs(tariffs);
@@ -646,7 +645,7 @@ async function init() {
     renderWhatIfControls();
     initStart(state.tariffs.find((t) => t.scenario === DEFAULT_SCENARIO) ?? state.tariffs[0]);
     // Shows the results when there's data to show, otherwise the start screen.
-    bindImport(useData, data);
+    bindImport(useData);
     document.body.classList.remove('loading');
   } catch (err) {
     $('start').hidden = false;
