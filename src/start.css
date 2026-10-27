@@ -35,7 +35,6 @@ body.on-start .brand { font-size: 20px; font-weight: 900; text-transform: upperc
 .start p { margin: 0; }
 .ch { position: relative; overflow: hidden; min-height: 90svh; padding: clamp(80px, 12vh, 140px) var(--m); }
 .ch-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; position: relative; }
-.nowrap { white-space: nowrap; }
 
 .cta {
   display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; border-radius: 999px;
@@ -54,7 +53,7 @@ body.on-start .brand { font-size: 20px; font-weight: 900; text-transform: upperc
   left: max(calc(78% - 60vh), 56%); top: calc(55% - 60vh);
 }
 .hero { width: 100%; }
-.hero h1 { grid-column: 1 / 8; font-size: clamp(56px, 6vw, 104px); }
+.hero h1 { grid-column: 1 / 8; font-size: clamp(56px, 6vw, 104px); text-wrap: balance; }
 .hero .lead { grid-column: 1 / 7; margin-top: 40px; font-size: var(--step-lead); line-height: 1.4; max-width: 38ch; }
 .hero-actions { grid-column: 1 / 7; margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
 

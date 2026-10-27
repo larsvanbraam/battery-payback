@@ -702,7 +702,7 @@ async function init() {
     bindControls();
     bindSourceTips();
     renderWhatIfControls();
-    initStart(state.tariffs.find((t) => t.scenario === DEFAULT_SCENARIO) ?? state.tariffs[0]);
+    initStart();
     // Shows the results when there's data to show, otherwise the start screen.
     bindImport(useData);
     document.body.classList.remove('loading');
