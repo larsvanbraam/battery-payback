@@ -65,5 +65,6 @@ Import the repository in Vercel. It detects Vite and builds with `npm run build`
   - **Specs:** `unit_kwh`, `usable_share`, `charge_kw`, `discharge_kw`, `max_power_kw`, `standby_w`, `rated_cycles`, `warranty_years`.
   - **Efficiency curve:** `rte_200`, `rte_500`, `rte_800`, `rte_max`, the round-trip efficiency at 200 W, 500 W, 800 W and full power, as Tweakers measures it. Leave the low-power columns empty when only an 800 W figure is known; they're then estimated from the average drop Tweakers found.
   - **Combining units:** `power_scales` (1 if each extra unit adds power, 0 if it only adds storage) and `max_units`.
-  - **Costs:** `first_unit_eur`, `extra_unit_eur`, `install_eur`, `p1_meter_eur`.
+  - **Costs:** `first_unit_eur`, `extra_unit_eur`, `install_eur`.
+  - **Meter:** `meter` (what the battery needs to read the grid meter), `meter_eur` (0 when included), `homewizard_p1` (1 if a HomeWizard P1 meter can stand in for it) and `meter_source`.
   - **Provenance:** `capacity_source`, `efficiency_source` and `standby_source` (`tweakers`, `review`, `manufacturer` or `assumed`), `price_source`, `review_url`, `notes`.

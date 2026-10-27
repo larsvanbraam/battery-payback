@@ -34,7 +34,12 @@ export interface Battery {
   firstUnitEur: number;
   extraUnitEur: number;
   installEur: number;
-  p1MeterEur: number;
+  /** The meter reader the battery needs to follow the house's use, and its price (0 when included). */
+  meter: string;
+  meterEur: number;
+  /** Whether it can use a HomeWizard P1 meter instead, so owning one saves buying its own. */
+  homewizardP1: boolean;
+  meterSource: string;
   warrantyYears: number;
   ratedCycles: number;
   priceSource: string;
@@ -71,6 +76,7 @@ export interface Sim {
 }
 
 export interface Options {
+  /** The visitor already has a HomeWizard P1 meter. */
   p1Owned?: boolean;
   lifetimeYears?: number;
 }
@@ -213,7 +219,10 @@ export function toBatteries(rows: CsvRow[]): Battery[] {
     firstUnitEur: Number(r.first_unit_eur),
     extraUnitEur: Number(r.extra_unit_eur),
     installEur: Number(r.install_eur),
-    p1MeterEur: Number(r.p1_meter_eur),
+    meter: r.meter,
+    meterEur: Number(r.meter_eur),
+    homewizardP1: r.homewizard_p1 === '1',
+    meterSource: r.meter_source,
     warrantyYears: Number(r.warranty_years),
     ratedCycles: Number(r.rated_cycles),
     priceSource: r.price_source,
@@ -288,9 +297,14 @@ export function simulateAllSizes(hours: Hour[], battery: Battery): Sim[] {
   return Array.from({ length: battery.maxUnits + 1 }, (_, n) => simulate(hours, battery, n));
 }
 
+// One meter per home, however many units. A HomeWizard P1 meter the visitor owns replaces it where it works.
+export function meterPrice(battery: Battery, { p1Owned = false }: Options = {}): number {
+  return p1Owned && battery.homewizardP1 ? 0 : battery.meterEur;
+}
+
 export function purchasePrice(battery: Battery, units: number, { p1Owned = false }: Options = {}): number {
   if (!units) return 0;
-  return battery.firstUnitEur + (units - 1) * battery.extraUnitEur + battery.installEur + (p1Owned ? 0 : battery.p1MeterEur);
+  return battery.firstUnitEur + (units - 1) * battery.extraUnitEur + battery.installEur + meterPrice(battery, { p1Owned });
 }
 
 // Prices each simulated size with one tariff and compares it with having no battery.

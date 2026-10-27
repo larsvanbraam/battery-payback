@@ -1,7 +1,7 @@
 import './styles.css';
 import {
   parseCsv, toBatteries, toTariffs, simulateAllSizes, compare, rankBatteries,
-  monthlyBreakdown, dailyProfile, dailySavings, contractView, rteAt, projectYears,
+  monthlyBreakdown, dailyProfile, dailySavings, contractView, rteAt, projectYears, meterPrice,
   type Battery, type CompareRow, type Hour, type RankedBattery, type Sim, type Tariff,
 } from './simulate.ts';
 import { fmt, sizeChart, monthlyChart, profileChart, dailyChart, balanceChart } from './charts.ts';
@@ -50,7 +50,7 @@ const state: State = {
   scenario: DEFAULT_SCENARIO,
   importEurKwh: 0,
   netExportEurKwh: 0,
-  p1Owned: true,
+  p1Owned: false,
   lifetimeYears: 15,
   monthlyInstalmentEur: 65,
   yearlyDiscountEur: 150,
@@ -334,7 +334,7 @@ function renderSummary(rows: CompareRow[], ranking: RankedBattery[]) {
   $('tile-saving-day').textContent = fmt.eurCents(chosen.savingEur / 365);
   $('tile-payback').textContent = paybackText(chosen.paybackYears);
   $('tile-price').textContent = fmt.eur(chosen.costEur);
-  $('tile-p1').textContent = b.p1MeterEur ? (state.p1Owned ? ' · you already have the P1 meter' : ' · including the P1 meter') : '';
+  $('tile-p1').textContent = meterText(b, { short: true });
   $('tile-bill').textContent = fmt.eur(none.billEur);
   $('tile-export').textContent = fmt.kwh(state.simsById.get(b.id)![0].exportKwh);
   $('tile-used').textContent = fmt.kwh(chosen.fromBatteryKwh);
@@ -430,6 +430,18 @@ function renderCharts(rows: CompareRow[]) {
   ]);
 }
 
+// What the chosen battery needs to read the meter, and whether that's in its price.
+function meterText(b: Battery, { short = false } = {}) {
+  const usesOwn = state.p1Owned && b.homewizardP1;
+  if (short) {
+    if (usesOwn) return ' · uses your HomeWizard P1 meter';
+    return b.meterEur ? ` · including the ${b.meter} (${fmt.eur(meterPrice(b, opts()))})` : '';
+  }
+  const price = b.meterEur ? `${b.meter}, ${fmt.eur(b.meterEur)}` : `${b.meter}, included`;
+  if (usesOwn) return b.meter === 'HomeWizard P1 meter' ? 'Your HomeWizard P1 meter' : `Your HomeWizard P1 meter, instead of the ${b.meter}`;
+  return b.homewizardP1 ? `${price}; a HomeWizard P1 meter also works` : price;
+}
+
 function renderSpecs() {
   const b = activeBattery();
   const src = (s: string) => (({ tweakers: ' (measured by Tweakers)', tweakers_home: ' (measured by Tweakers at home, average over all power levels)', review: ' (measured in a review)', manufacturer: ' (manufacturer)', assumed: ' (assumed)' } as Record<string, string>)[s] ?? '');
@@ -444,10 +456,11 @@ function renderSpecs() {
     ['Price of the first battery', fmt.eur(b.firstUnitEur)],
     ['Price of each extra battery', b.maxUnits === 1 ? '—' : fmt.eur(b.extraUnitEur)],
     ['Installation', b.installEur ? fmt.eur(b.installEur) : 'None, plugs into a socket'],
-    ['P1 meter', b.p1MeterEur ? (state.p1Owned ? 'Already have one' : fmt.eur(b.p1MeterEur)) : 'Meter included'],
+    ['Meter it needs', meterText(b)],
     ['Warranty', `${b.warrantyYears} years`],
     ['Rated charge cycles', b.ratedCycles.toLocaleString('en-US')],
     ['Price checked at', b.priceSource],
+    ['Meter price and support', b.meterSource],
     ['Review', b.reviewUrl ? { href: b.reviewUrl, text: new URL(b.reviewUrl).hostname.replace('www.', '') } : 'None found'],
   ];
   $('spec-title').textContent = `Specs used for the ${b.name}`;
@@ -621,8 +634,7 @@ async function init() {
     state.hours = data.hours;
     state.batteries = toBatteries(batteries);
     state.tariffs = toTariffs(tariffs);
-    const hw = state.batteries.find((b) => b.p1MeterEur);
-    $('p1-price').textContent = hw ? fmt.eur(hw.p1MeterEur) : '—';
+    $('p1-brands').textContent = [...new Set(state.batteries.filter((b) => b.homewizardP1).map((b) => b.brand))].join(', ');
     renderBatteryOptions();
     selectBattery(state.batteries.some((b) => b.id === DEFAULT_BATTERY) ? DEFAULT_BATTERY : state.batteries[0].id, 1);
     applyScenario(DEFAULT_SCENARIO);

@@ -14,7 +14,7 @@ const battery: Battery = {
   capacitySource: 'assumed', chargeKw: 0.8, dischargeKw: 0.8, maxPowerKw: 0.8, powerScales: true,
   maxUnits: 2, rteCurve: flat(0.85), lowPowerEstimated: false, efficiencySource: 'assumed', efficiencyBy: '',
   standbyW: 5, standbySource: 'assumed', standbyBy: '', firstUnitEur: 1195, extraUnitEur: 1000,
-  installEur: 0, p1MeterEur: 30, warrantyYears: 10, ratedCycles: 6000, priceSource: '', reviewUrl: '', notes: '',
+  installEur: 0, meter: 'HomeWizard P1 meter', meterEur: 30, homewizardP1: true, meterSource: '', warrantyYears: 10, ratedCycles: 6000, priceSource: '', reviewUrl: '', notes: '',
 };
 const day: Hour[] = [
   { timestamp: '2026-06-01T12:00:00+02:00', importKwh: 0, exportKwh: 2 },
@@ -77,11 +77,14 @@ test('efficiency follows the measured curve and is lower at low power', () => {
   assert.ok(lowPower.fromBatteryKwh < allAt800.fromBatteryKwh, 'a 200 W night load gets less out of the battery');
 });
 
-test('purchasePrice adds extra units, installation and the P1 meter unless owned', () => {
+test('purchasePrice adds extra units, installation and the meter, unless a HomeWizard P1 meter can stand in', () => {
   assert.equal(purchasePrice(battery, 0), 0);
   assert.equal(purchasePrice(battery, 1), 1225);
   assert.equal(purchasePrice(battery, 1, { p1Owned: true }), 1195);
   assert.equal(purchasePrice(battery, 2, { p1Owned: true }), 2195);
+  assert.equal(purchasePrice(battery, 2), 2225, 'one meter, however many units');
+  const ownMeter = { ...battery, homewizardP1: false };
+  assert.equal(purchasePrice(ownMeter, 1, { p1Owned: true }), 1225, 'a HomeWizard P1 meter only helps where it works');
 });
 
 test('compare prices savings, payback and lifetime result', () => {
@@ -157,7 +160,7 @@ test('projectYears applies price growth, ageing and shortfall', () => {
 });
 
 test('payback is found inside the year the balance turns positive', () => {
-  const b = { ...battery, rteCurve: flat(1), standbyW: 0, firstUnitEur: 0.5, p1MeterEur: 0 };
+  const b = { ...battery, rteCurve: flat(1), standbyW: 0, firstUnitEur: 0.5, meterEur: 0 };
   const p = projectYears(day, b, 1, { importEurKwh: 0.3, netExportEurKwh: 0 }, { lifetimeYears: 5 });
   assert.ok(p.paybackYears! > 0 && p.paybackYears! < 5);
   assert.ok(Math.abs(p.paybackYears! - 0.5 / p.firstYearSavingEur) < 1e-9);
