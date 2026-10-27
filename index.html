@@ -18,18 +18,27 @@
         <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="17" height="12" rx="2"/><rect x="20" y="10" width="2" height="4" rx="1"/><rect class="mark-fill" x="4" y="8" width="8" height="8" rx="1"/></svg>
         <span>Battery payback</span>
       </a>
-      <span class="scope" id="data-badge">Sample household</span>
-      <span class="topbar-meta" id="topbar-period"></span>
-      <button type="button" class="btn btn-primary" id="open-data">Load your data</button>
+      <span class="scope app-only" id="data-badge">Sample household</span>
+      <span class="topbar-meta app-only" id="topbar-period"></span>
+      <button type="button" class="btn btn-primary app-only" id="open-data">Load your data</button>
     </div>
   </header>
 
-  <main id="app" class="canvas">
+  <main id="start" class="canvas start" hidden>
+    <div class="start-head">
+      <h1>Which battery pays for itself</h1>
+      <p class="finding">Load a year of your own hourly meter data and see, battery by battery, what it saves once saldering ends on 1 January 2027 and when it has paid for itself. Your data stays in your browser.</p>
+      <button type="button" class="btn" id="start-back" hidden>Back to the results</button>
+    </div>
+    <div id="start-slot"></div>
+  </main>
+
+  <main id="app" class="canvas" hidden>
     <div class="title-row">
       <div>
         <h1>Which battery pays for itself</h1>
         <p class="finding" id="takeaway">Replaying a year of meter data…</p>
-        <p class="notice" id="sample-banner" hidden>This is a made-up household. <button type="button" class="link" data-open-data>Load your own meter data</button> to see your numbers.</p>
+        <p class="notice" id="sample-banner" hidden>This is a made-up household. <button type="button" class="link" data-show-start>Load your own meter data</button> to see your numbers.</p>
       </div>
     </div>
 
@@ -272,6 +281,7 @@
       <h2 id="data-card-title">Your meter data</h2>
       <button type="button" class="btn" id="close-data">Close</button>
     </div>
+    <div class="import-panel" id="import-panel">
     <div class="import-progress" id="import-progress" role="status" hidden>
       <progress id="import-bar"></progress>
       <span id="import-progress-text"></span>
@@ -299,6 +309,12 @@
           <input id="hourly-file" type="file" accept=".csv,text/csv">
         </label>
       </div>
+      <div class="import-option">
+        <h3>Or look around first</h3>
+        <p class="hint">A made-up Dutch household with solar panels: a full year of hourly grid use and solar sent back.</p>
+        <a class="btn btn-link" href="#sample" data-use-sample>Explore the sample household</a>
+      </div>
+    </div>
     </div>
     <div class="sheet-foot">
       <p class="hint">Your data is stored only in this browser, so the page remembers it next time.</p>

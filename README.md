@@ -6,7 +6,7 @@ Built with Vite and TypeScript, with no runtime dependencies. It's a static site
 
 ## Your data stays in your browser
 
-Visitors start on a made-up sample household and can load their own data in two ways:
+First-time visitors get a start screen with three choices: fetch their data, upload a file, or explore a made-up sample household (also linkable as `/#sample`). Returning visitors go straight to their stored results. The two ways to load your own data:
 
 - **From their energy supplier, with a bookmarklet.** They drag a button to their bookmarks bar, log in to their supplier's site and click the bookmark. The bookmarklet runs there, in their own logged-in browser: it fetches the past year of hourly usage from the supplier's own API, opens this site in a new tab and hands the data over with `postMessage`. If that tab can't be reached (a popup blocker, for example), the data downloads as a CSV to upload instead. This site's server never sees a login or a meter reading, and the supplier only sees the same requests its own site makes. Clicking the bookmark again later fetches only the new days.
 - **By uploading a CSV** with `timestamp,import_kwh,export_kwh`, one row per hour (ISO timestamps with an offset, for example `2026-06-01T12:00:00+02:00`).

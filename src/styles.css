@@ -130,6 +130,7 @@ h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
 .btn-primary { background: var(--primary); border-color: var(--primary); color: var(--surface); font-weight: 500; }
 .btn-primary:hover { border-color: var(--primary); opacity: .88; }
 .btn-danger { color: var(--negative); }
+.btn-link { display: inline-flex; align-items: center; align-self: flex-start; text-decoration: none; }
 .link { font: inherit; padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
 
 .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; border-radius: var(--radius-control); background: var(--active); }
@@ -297,7 +298,8 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
 .sheet-head h2 { font-size: 18px; font-weight: 700; }
 .sheet-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
 .sheet-foot .hint { margin: 0; }
-.import-options { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px 32px; }
+.import-panel { display: flex; flex-direction: column; gap: 16px; }
+.import-options { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px 32px; }
 .import-option { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .import-option h3 { margin: 0; font-size: 14px; font-weight: 500; }
 .steps { margin: 0; padding-left: 1.3em; font-size: 13px; display: flex; flex-direction: column; gap: 10px; }
@@ -313,6 +315,17 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
 .import-progress progress { flex: 1 1 160px; max-width: 320px; accent-color: var(--data); }
 .data-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
+/* Start screen: shown until there's data to look at. The same import panel moves into the dialog later. */
+body.on-start .app-only { display: none; }
+.start { gap: 24px; }
+.start-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; max-width: 70ch; }
+.start-head .finding { margin: 0; }
+.start .import-options { gap: var(--gap); align-items: stretch; }
+.start .import-option {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--pad);
+}
+.start .import-option:first-child { border-color: var(--data); }
+
 /* Tablet and phone */
 @media (max-width: 1100px) {
   .setup { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -321,6 +334,7 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
   .wide-only { display: none; }
 }
 @media (max-width: 860px) {
+  .import-options { grid-template-columns: minmax(0, 1fr); }
   .row-even { grid-template-columns: minmax(0, 1fr); }
   .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .flow-node:nth-child(3)::before { display: none; }

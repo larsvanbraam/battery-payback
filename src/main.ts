@@ -632,24 +632,21 @@ async function init() {
       fetchCsv('data/batteries.csv'),
       fetchCsv('data/eneco-2027-tariffs.csv'),
     ]);
-    state.hours = data.hours;
     state.batteries = toBatteries(batteries);
     state.tariffs = toTariffs(tariffs);
     $('p1-brands').textContent = [...new Set(state.batteries.filter((b) => b.homewizardP1).map((b) => b.brand))].join(', ');
     renderBatteryOptions();
     selectBattery(state.batteries.some((b) => b.id === DEFAULT_BATTERY) ? DEFAULT_BATTERY : state.batteries[0].id, 1);
     applyScenario(DEFAULT_SCENARIO);
-    runSimulation();
-    selectBestBuy();
     bindControls();
     bindSourceTips();
-    bindImport(useData);
     renderWhatIfControls();
-    renderDataStatus(data);
-    render();
+    // Shows the results when there's data to show, otherwise the start screen.
+    bindImport(useData, data);
     document.body.classList.remove('loading');
   } catch (err) {
-    $('takeaway').textContent = err instanceof Error ? err.message : String(err);
+    $('start').hidden = false;
+    $('start-slot').textContent = err instanceof Error ? err.message : String(err);
   }
 }
 

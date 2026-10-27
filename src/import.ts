@@ -1,6 +1,7 @@
 // Where the hourly data comes from: the sample household, a CSV the visitor uploads, or a bookmarklet
 // that fetches it from the visitor's energy provider in their own browser. Whatever the visitor loads is
-// remembered in this browser only, so the page shows their own numbers next time.
+// remembered in this browser only, so the page shows their own numbers next time. Until something is
+// loaded the page shows a start screen with those three choices; later the same panel opens as a dialog.
 import { CHANNEL, parseBookmarkletMessage, type HourRow } from './bookmarklet/protocol.ts';
 import {
   clearDataset, haveUntil, loadDataset, mergeRows, saveDataset, toCsv, toHourObjects, toRows, type Dataset,
@@ -22,10 +23,40 @@ const MIN_HOURS = 24 * 7;
 
 const $ = (id: string) => document.getElementById(id)!;
 const dialog = () => $('data-card') as HTMLDialogElement;
+const SAMPLE_HASH = '#sample';
+
+/** Whether the results behind the start screen have data, so "Back to the results" can show. */
+let hasData = false;
+
+// One import panel, moved to wherever it's needed, so its state (progress, errors) goes with it.
+function placePanel(where: 'start' | 'dialog') {
+  const panel = $('import-panel');
+  if (where === 'start') $('start-slot').append(panel);
+  else dialog().querySelector('.sheet-head')!.after(panel);
+}
 
 function openDialog() {
+  placePanel('dialog');
   if (!dialog().open) dialog().showModal();
 }
+
+export function showStart() {
+  if (dialog().open) dialog().close();
+  placePanel('start');
+  $('start-back').hidden = !hasData;
+  $('start').hidden = false;
+  $('app').hidden = true;
+  document.body.classList.add('on-start');
+  window.scrollTo(0, 0);
+}
+
+function showResults() {
+  $('start').hidden = true;
+  $('app').hidden = false;
+  document.body.classList.remove('on-start');
+}
+
+const setHash = (hash: string) => history.replaceState(null, '', location.pathname + location.search + hash);
 
 function describe(dataset: Dataset): string {
   return dataset.source === 'file' ? `your file ${dataset.label}` : `your ${dataset.label} data`;
@@ -37,10 +68,12 @@ async function sample(): Promise<LoadedData> {
   return { hours: toHours(parseCsv(await res.text())), label: 'a made-up sample household', isSample: true };
 }
 
-export async function initialData(): Promise<LoadedData> {
+/** What to show straight away: the sample when the link asks for it, else stored data, else nothing (start screen). */
+export async function initialData(): Promise<LoadedData | null> {
+  if (location.hash === SAMPLE_HASH) return sample();
   const stored = loadDataset();
   if (stored) return { hours: toHourObjects(stored.rows), label: describe(stored), isSample: false };
-  return sample();
+  return null;
 }
 
 function showError(message: string | null) {
@@ -82,7 +115,8 @@ function accept(dataset: Dataset, onData: OnData) {
   }
   const saved = saveDataset(dataset);
   showError(saved ? null : 'Your data is shown, but this browser won\'t let the page remember it for next time.');
-  if (saved) dialog().close();
+  if (saved && dialog().open) dialog().close();
+  if (location.hash === SAMPLE_HASH) setHash('');
   onData({ hours: toHourObjects(dataset.rows), label: describe(dataset), isSample: false });
 }
 
@@ -120,8 +154,9 @@ function renderProviders() {
 function listenToBookmarklet(provider: Provider, onData: OnData) {
   const opener = window.opener as Window | null;
   if (!opener) return;
-  history.replaceState(null, '', location.pathname + location.search);
-  openDialog();
+  setHash('');
+  // With results already on screen the progress shows over them; on a first visit, on the start screen.
+  if (hasData) openDialog(); else showStart();
   showError(null);
   showProgress(`Waiting for ${provider.name}…`);
 
@@ -149,10 +184,35 @@ function listenToBookmarklet(provider: Provider, onData: OnData) {
   opener.postMessage(ready, provider.origin);
 }
 
-export function bindImport(onData: OnData) {
+export function bindImport(show: OnData, initial: LoadedData | null) {
+  const onData: OnData = (data) => {
+    hasData = true;
+    showResults();
+    show(data);
+  };
   renderProviders();
-  for (const el of [$('open-data'), ...document.querySelectorAll('[data-open-data]')]) el.addEventListener('click', openDialog);
+  $('open-data').addEventListener('click', openDialog);
+  for (const el of document.querySelectorAll('[data-show-start]')) el.addEventListener('click', showStart);
   $('close-data').addEventListener('click', () => dialog().close());
+  $('start-back').addEventListener('click', showResults);
+  document.querySelector('.brand')!.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    showStart();
+  });
+  for (const el of document.querySelectorAll('[data-use-sample]')) {
+    el.addEventListener('click', async (ev) => {
+      ev.preventDefault();
+      showError(null);
+      try {
+        const data = await sample();
+        setHash(SAMPLE_HASH);
+        if (dialog().open) dialog().close();
+        onData(data);
+      } catch (err) {
+        showError(err instanceof Error ? err.message : String(err));
+      }
+    });
+  }
 
   const file = $('hourly-file') as HTMLInputElement;
   file.addEventListener('change', async () => {
@@ -178,16 +238,16 @@ export function bindImport(onData: OnData) {
     URL.revokeObjectURL(a.href);
   });
 
-  $('forget-data').addEventListener('click', async () => {
+  $('forget-data').addEventListener('click', () => {
     clearDataset();
     showError(null);
-    try {
-      onData(await sample());
-      dialog().close();
-    } catch (err) {
-      showError(err instanceof Error ? err.message : String(err));
-    }
+    hasData = false;
+    setHash('');
+    showStart();
   });
+
+  if (initial) onData(initial);
+  else showStart();
 
   const match = location.hash.match(/^#import=([a-z0-9-]+)$/);
   const provider = match ? findProvider(match[1]) : undefined;
