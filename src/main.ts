@@ -208,7 +208,9 @@ function efficiencyTip(b: Battery) {
     return `Measured by Tweakers in its own lab: ${curve}. Every hour of your data uses the efficiency that matches that hour's power.`;
   }
   if (b.efficiencySource === 'tweakers_home') {
-    return `Measured by Tweakers' reviewer at home over a full year (375 days, 2025–2026): 905 kWh went into the battery and 677 kWh came out, ${at800} overall. ` +
+    return `Measured by Tweakers' reviewer at home over a full year (375 days, 2025–2026): 905 kWh went into the battery and 677 kWh came out, 75% overall. ` +
+      `The app counts at the plug, so that includes the battery's own idle use. The ${b.standbyW} W standby (${Math.round(b.standbyW * 24 * 375 / 1000)} kWh over those days) ` +
+      `is counted separately here, which leaves ${at800} for charging and discharging. ` +
       'That is an average over all power levels, from midday charging to a quiet night, so the same value is used at every power.';
   }
   if (b.efficiencySource === 'assumed') {
