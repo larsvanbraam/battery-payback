@@ -1,5 +1,6 @@
 import './styles.css';
 import './start.css';
+import { inject } from '@vercel/analytics';
 import {
   parseCsv, toBatteries, toTariffs, simulateAllSizes, compare, rankBatteries,
   monthlyBreakdown, dailyProfile, dailySavings, contractView, rteAt, projectYears, meterPrice,
@@ -8,6 +9,10 @@ import {
 import { fmt, sizeChart, monthlyChart, profileChart, dailyChart, balanceChart } from './charts.ts';
 import { bindImport, renderDataStatus, type LoadedData } from './import.ts';
 import { initStart } from './start.ts';
+
+// Cookieless page views on Vercel; screen changes count too, as the router uses pushState. In
+// development it only logs to the console.
+inject({ mode: import.meta.env.DEV ? 'development' : 'production' });
 
 const DEFAULT_SCENARIO = 'eneco_1y';
 const DEFAULT_BATTERY = 'homewizard';
