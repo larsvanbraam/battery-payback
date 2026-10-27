@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/((?!data/|assets/|favicon).*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/((?!data/|assets/|favicon|apple-touch-icon|og-image).*)", "destination": "/index.html" }]
 }
