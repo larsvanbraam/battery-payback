@@ -43,6 +43,8 @@ export interface Battery {
   warrantyYears: number;
   ratedCycles: number;
   priceSource: string;
+  /** When the price and meter price were last checked, YYYY-MM-DD. */
+  priceChecked: string;
   reviewUrl: string;
   notes: string;
   /** Outside size of one unit in cm, in the order the source gives it. */
@@ -235,6 +237,7 @@ export function toBatteries(rows: CsvRow[]): Battery[] {
     warrantyYears: Number(r.warranty_years),
     ratedCycles: Number(r.rated_cycles),
     priceSource: r.price_source,
+    priceChecked: r.price_checked ?? '',
     reviewUrl: r.review_url,
     notes: r.notes,
     sizeCm: r.size_cm ?? '',

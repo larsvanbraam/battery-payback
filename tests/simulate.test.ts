@@ -14,7 +14,7 @@ const battery: Battery = {
   capacitySource: 'assumed', chargeKw: 0.8, dischargeKw: 0.8, maxPowerKw: 0.8, powerScales: true,
   maxUnits: 2, rteCurve: flat(0.85), lowPowerEstimated: false, efficiencySource: 'assumed', efficiencyBy: '',
   standbyW: 5, standbySource: 'assumed', standbyBy: '', firstUnitEur: 1195, extraUnitEur: 1000,
-  installEur: 0, meter: 'HomeWizard P1 meter', meterEur: 30, homewizardP1: true, meterSource: '', warrantyYears: 10, ratedCycles: 6000, priceSource: '', reviewUrl: '', notes: '',
+  installEur: 0, meter: 'HomeWizard P1 meter', meterEur: 30, homewizardP1: true, meterSource: '', warrantyYears: 10, ratedCycles: 6000, priceSource: '', priceChecked: '', reviewUrl: '', notes: '',
   sizeCm: '', weightKg: 0, sizeSource: '',
 };
 const day: Hour[] = [
@@ -119,6 +119,7 @@ test('sample data loads, ranks every battery and adds up per day', () => {
   assert.equal(hours.length, 8760);
   assert.ok(batteries.length >= 5);
   assert.ok(batteries.every((b) => b.weightKg > 0 && b.sizeCm), 'every battery has a size and weight');
+  assert.ok(batteries.every((b) => /^\d{4}-\d{2}-\d{2}$/.test(b.priceChecked)), 'every battery has a price_checked date');
 
   const simsById = new Map(batteries.map((b) => [b.id, simulateAllSizes(hours, b)]));
   const base = simsById.get('homewizard')![0];

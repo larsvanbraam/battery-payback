@@ -177,6 +177,10 @@ function renderTariffOptions() {
   }));
 }
 
+// A YYYY-MM-DD date from the data files, as "27 Oct 2026".
+const checkedDate = (day: string) =>
+  new Date(`${day}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
 function renderScenario() {
   const t = state.tariffs.find((x) => x.scenario === state.scenario);
   const custom = !t || t.importEurKwh !== state.importEurKwh || t.netExportEurKwh !== state.netExportEurKwh;
@@ -185,8 +189,7 @@ function renderScenario() {
   const source = $('tariff-source');
   source.replaceChildren();
   if (!t) return;
-  const checked = t.checked
-    ? ` Checked ${new Date(`${t.checked}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`
+  const checked = t.checked ? ` Checked ${checkedDate(t.checked)}.`
     : '';
   if (t.sourceUrl) {
     const a = document.createElement('a');
@@ -559,7 +562,7 @@ function renderSpecs() {
     ['Meter it needs', meterText(b)],
     ['Warranty', `${b.warrantyYears} years`],
     ['Rated charge cycles', b.ratedCycles.toLocaleString('en-US')],
-    ['Price checked at', b.priceSource],
+    ['Price checked at', b.priceChecked ? `${b.priceSource}, ${checkedDate(b.priceChecked)}` : b.priceSource],
     ['Meter price and support', b.meterSource],
     ['Review', b.reviewUrl ? { href: b.reviewUrl, text: new URL(b.reviewUrl).hostname.replace('www.', '') } : 'None found'],
   ];
@@ -735,6 +738,9 @@ async function init() {
       fetchCsv('/data/tariffs-2027.csv'),
     ]);
     state.batteries = toBatteries(batteries);
+    // The oldest battery price, so the note says how stale the comparison can be.
+    const oldest = state.batteries.map((b) => b.priceChecked).filter(Boolean).sort()[0];
+    if (oldest) $('prices-checked').textContent = ` Battery prices checked ${checkedDate(oldest)}.`;
     state.tariffs = toTariffs(tariffs);
     $('p1-brands').textContent = [...new Set(state.batteries.filter((b) => b.homewizardP1).map((b) => b.brand))].join(', ');
     renderBatteryOptions();

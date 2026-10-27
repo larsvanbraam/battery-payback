@@ -116,6 +116,21 @@ Nothing here is stored except the loaded data; every setting starts from its def
 | `vercel.json` | Sends every page path to `index.html` |
 | `tests/` | Vitest tests |
 
+## Where the data comes from
+
+Every figure was collected by hand from the sources below; nothing is fetched automatically. Prices and tariffs go stale within months, so each file records when it was checked. The page shows the oldest battery `price_checked` under the ranking and each tariff's `checked` date under the price picker.
+
+| Data | Source | Checked |
+| --- | --- | --- |
+| Battery prices | Tweakers Pricewatch, manufacturers' and retailers' list prices (`price_source`) | `price_checked`: all 27 Oct 2026 |
+| Meter prices and HomeWizard P1 support | Manufacturers' and retailers' stores (`meter_source`) | Oct 2026 |
+| Efficiency, standby and usable storage | Tweakers lab tests for the Marstek, Anker Max and EcoFlow AC 5000; a year of home use for the HomeWizard; one review each for the Zendure, Anker E2700 Pro and Sessy; assumed for the EcoFlow AC Pro (`*_source`, `review_url`) | Reviews from 2025 and 2026 |
+| Size and weight | Spec sheets, manuals and retailer listings (`size_source`) | Aug 2024 to Oct 2026 |
+| 2027 tariffs | Suppliers' own sites, feed-in costs via Keuze.nl (`source_url`) | `checked`: 27 Oct 2026 |
+| Sample household | Made up by `scripts/generate-sample.ts` | — |
+
+To refresh a figure, change it in the CSV and update its date column.
+
 ## Data formats
 
 - **Tariffs** (`public/data/tariffs-2027.csv`): one row per supplier contract: `scenario,supplier,contract,import_eur_kwh,feedin_eur_kwh,feedin_cost_eur_kwh,net_export_eur_kwh,source_url,checked,note`. Grid prices include VAT and energy tax; `net_export_eur_kwh` is what a kWh sent back is worth after feed-in costs, the figure the calculation uses. `feedin_eur_kwh`, `feedin_cost_eur_kwh`, `source_url` and `checked` can be empty, as in the `stress` what-if row. The picker groups rows by `supplier` and shows `note`, the source and `checked` under it.
@@ -124,7 +139,7 @@ Nothing here is stored except the loaded data; every setting starts from its def
   - **Specs:** `unit_kwh`, `usable_share`, `charge_kw`, `discharge_kw`, `max_power_kw`, `standby_w`, `rated_cycles`, `warranty_years`.
   - **Efficiency curve:** `rte_200`, `rte_500`, `rte_800`, `rte_max`, the round-trip efficiency at 200 W, 500 W, 800 W and full power, as Tweakers measures it. Leave the low-power columns empty when only an 800 W figure is known; they're then estimated from the average drop Tweakers found.
   - **Combining units:** `power_scales` (1 if each extra unit adds power, 0 if it only adds storage) and `max_units`.
-  - **Costs:** `first_unit_eur`, `extra_unit_eur`, `install_eur`.
+  - **Costs:** `first_unit_eur`, `extra_unit_eur`, `install_eur`, and `price_checked` (YYYY-MM-DD, when the price and meter price were last checked).
   - **Meter:** `meter` (what the battery needs to read the grid meter), `meter_eur` (0 when included), `homewizard_p1` (1 if a HomeWizard P1 meter can stand in for it) and `meter_source`.
   - **Size:** `size_cm` (one unit's outside size, for example `40 × 30 × 20`, in the order the source gives it), `weight_kg` and `size_source`.
   - **Provenance:** `capacity_source`, `efficiency_source` and `standby_source` (`tweakers`, `review`, `manufacturer` or `assumed`; `efficiency_source` can also be `tweakers_home`, a year measured at home, used at every power), `efficiency_by` and `standby_by` (who measured it, for `review`), `price_source`, `review_url`, `notes`.
