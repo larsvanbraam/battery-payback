@@ -6,6 +6,8 @@ Which home battery pays for itself on your own meter data, once saldering ends i
 
 Built with Vite and TypeScript, as a static site with no server code. The only runtime dependency is Vercel Analytics.
 
+> **Disclaimer:** Battery Payback is a free, independent tool. All figures are estimates from past use and expected prices, not financial advice, and come without any guarantee. No rights can be derived from them, and the maker accepts no liability for decisions based on them.
+
 ![The results for the sample household: the battery ranking, then the chosen battery's yearly saving and where its solar power goes](docs/screenshot.png)
 
 ## Your data stays in your browser
