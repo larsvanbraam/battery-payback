@@ -74,9 +74,10 @@
       </div>
     </div>
 
-    <div class="pricebar" role="group" aria-labelledby="scenarios-label">
-      <span class="field-label" id="scenarios-label">Prices from 2027</span>
-      <div class="segmented" id="scenarios" role="group" aria-labelledby="scenarios-label"></div>
+    <div class="pricebar" role="group" aria-label="Electricity prices">
+      <label class="inline-field" for="tariff-select">Prices from 2027
+        <select id="tariff-select"></select>
+      </label>
       <label class="inline-field" for="import-price">Grid price <span class="hint">€/kWh</span>
         <input id="import-price" type="number" step="0.001" min="0" inputmode="decimal">
       </label>
@@ -88,6 +89,7 @@
         <span>I have a HomeWizard P1 meter <span class="hint">(replaces the meter <span id="p1-brands">—</span> would need)</span></span>
       </label>
       <span class="custom-flag" id="custom-flag" hidden>Your own prices</span>
+      <p class="tariff-source" id="tariff-source"></p>
     </div>
 
       <section class="panel" aria-labelledby="ranking-title">
@@ -302,7 +304,8 @@
         <li>Hourly data hides short spikes above the battery's power (a kettle, the oven), so real savings are likely 5–10% lower.</li>
         <li>Batteries Tweakers hasn't tested at low power use the average drop of the ones it has.</li>
         <li>Every battery gets the same lifetime. Check the warranty: a cheap battery that fails early never earns itself back.</li>
-        <li>The price presets are Eneco's 2027 offer; its feed-in terms come from comparison sites (16 Oct 2026). Enter your own supplier's prices above.</li>
+        <li>The supplier presets are one-year fixed contracts for new customers, as offered when checked (the date and source are under the picker). Your own contract may differ: enter its prices above.</li>
+        <li>Grid prices include VAT and the 2026 energy tax; the 2027 rate isn't published yet, so the real 2027 price will move with it. Three-year contracts are left out because no 2027 feed-in terms for them were published, and dynamic contracts aren't modelled.</li>
         <li>Dynamic contracts, where a battery also charges on cheap hours, aren't modelled. They would favour bigger batteries.</li>
       </ul>
     </section>

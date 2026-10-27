@@ -9,7 +9,7 @@ import { fmt, sizeChart, monthlyChart, profileChart, dailyChart, balanceChart } 
 import { bindImport, renderDataStatus, type LoadedData } from './import.ts';
 import { initStart } from './start.ts';
 
-const DEFAULT_SCENARIO = 'eneco_3y';
+const DEFAULT_SCENARIO = 'eneco_1y';
 const DEFAULT_BATTERY = 'homewizard';
 const RANKING_ROWS = 5;
 
@@ -137,20 +137,44 @@ function renderUnitOptions() {
   input('units-select').disabled = b.maxUnits === 1;
 }
 
-function renderScenarioButtons() {
-  const custom = !state.tariffs.some(
-    (t) => t.scenario === state.scenario && t.importEurKwh === state.importEurKwh && t.netExportEurKwh === state.netExportEurKwh,
-  );
-  $('scenarios').replaceChildren(...state.tariffs.map((t) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = t.label;
-    b.title = t.note;
-    b.setAttribute('aria-pressed', String(!custom && t.scenario === state.scenario));
-    b.addEventListener('click', () => { applyScenario(t.scenario); render(); });
-    return b;
+const cents = (eur: number) => `${(eur * 100).toFixed(1)} ct`;
+
+// One option per contract, grouped by supplier in the order of the tariff file.
+function renderTariffOptions() {
+  const groups = new Map<string, Tariff[]>();
+  for (const t of state.tariffs) groups.set(t.supplier, [...(groups.get(t.supplier) ?? []), t]);
+  $('tariff-select').replaceChildren(...[...groups].map(([supplier, tariffs]) => {
+    const group = document.createElement('optgroup');
+    group.label = supplier;
+    group.append(...tariffs.map((t) => {
+      const o = document.createElement('option');
+      o.value = t.scenario;
+      o.textContent = `${t.contract} · ${cents(t.importEurKwh)}, ${cents(t.netExportEurKwh)} back`;
+      return o;
+    }));
+    return group;
   }));
+}
+
+function renderScenario() {
+  const t = state.tariffs.find((x) => x.scenario === state.scenario);
+  const custom = !t || t.importEurKwh !== state.importEurKwh || t.netExportEurKwh !== state.netExportEurKwh;
+  input('tariff-select').value = state.scenario;
   $('custom-flag').hidden = !custom && !Object.keys(state.priceOverrides).length;
+  const source = $('tariff-source');
+  source.replaceChildren();
+  if (!t) return;
+  const checked = t.checked
+    ? ` Checked ${new Date(`${t.checked}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`
+    : '';
+  if (t.sourceUrl) {
+    const a = document.createElement('a');
+    a.href = t.sourceUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = new URL(t.sourceUrl).hostname.replace(/^www\./, '');
+    source.append(`${t.note}. Source: `, a, `.${checked}`);
+  } else source.append(`${t.note}.${checked}`);
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -562,7 +586,7 @@ function render() {
   const b = activeBattery();
   const rows = compare(state.simsById.get(b.id)!, activeTariff(), b, opts());
   const ranking = rankBatteries(state.simsById, state.batteries.map(priced), activeTariff(), opts());
-  renderScenarioButtons();
+  renderScenario();
   renderRanking(ranking);
   renderRankingToggle(ranking.length);
   renderSummary(rows, ranking);
@@ -589,6 +613,7 @@ function bindControls() {
   onNumber('instalment', (v) => { state.monthlyInstalmentEur = v; });
   onNumber('discount', (v) => { state.yearlyDiscountEur = v; });
   $('ranking-toggle').addEventListener('click', () => { state.rankingExpanded = !state.rankingExpanded; render(); });
+  input('tariff-select').addEventListener('change', () => { applyScenario(input('tariff-select').value); render(); });
   input('p1-owned').addEventListener('change', () => { state.p1Owned = input('p1-owned').checked; render(); });
   input('battery-select').addEventListener('change', () => { selectBattery(input('battery-select').value); render(); });
   input('units-select').addEventListener('change', () => { state.units = Number(input('units-select').value); render(); });
@@ -632,12 +657,13 @@ async function init() {
   try {
     const [batteries, tariffs] = await Promise.all([
       fetchCsv('/data/batteries.csv'),
-      fetchCsv('/data/eneco-2027-tariffs.csv'),
+      fetchCsv('/data/tariffs-2027.csv'),
     ]);
     state.batteries = toBatteries(batteries);
     state.tariffs = toTariffs(tariffs);
     $('p1-brands').textContent = [...new Set(state.batteries.filter((b) => b.homewizardP1).map((b) => b.brand))].join(', ');
     renderBatteryOptions();
+    renderTariffOptions();
     selectBattery(state.batteries.some((b) => b.id === DEFAULT_BATTERY) ? DEFAULT_BATTERY : state.batteries[0].id, 1);
     applyScenario(DEFAULT_SCENARIO);
     bindControls();

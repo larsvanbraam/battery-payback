@@ -73,7 +73,7 @@ Old links with `#sample` or `#import=<supplier>` are rewritten to these paths. T
 
 ## Data formats
 
-- **Tariffs** (`public/data/eneco-2027-tariffs.csv`): `scenario,label,import_eur_kwh,feedin_eur_kwh,feedin_cost_eur_kwh,net_export_eur_kwh,note`.
+- **Tariffs** (`public/data/tariffs-2027.csv`): one row per supplier contract: `scenario,supplier,contract,import_eur_kwh,feedin_eur_kwh,feedin_cost_eur_kwh,net_export_eur_kwh,source_url,checked,note`. Grid prices include VAT and energy tax; `net_export_eur_kwh` is what a kWh sent back is worth after feed-in costs, the figure the calculation uses. The picker groups rows by `supplier` and shows `note`, the source and `checked` under it.
 - **Batteries** (`public/data/batteries.csv`): one row per battery. Add a row to compare another one.
   - **Specs:** `unit_kwh`, `usable_share`, `charge_kw`, `discharge_kw`, `max_power_kw`, `standby_w`, `rated_cycles`, `warranty_years`.
   - **Efficiency curve:** `rte_200`, `rte_500`, `rte_800`, `rte_max`, the round-trip efficiency at 200 W, 500 W, 800 W and full power, as Tweakers measures it. Leave the low-power columns empty when only an 800 W figure is known; they're then estimated from the average drop Tweakers found.

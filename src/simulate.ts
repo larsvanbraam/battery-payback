@@ -54,7 +54,12 @@ export interface Prices {
 
 export interface Tariff extends Prices {
   scenario: string;
+  supplier: string;
+  contract: string;
   label: string;
+  sourceUrl: string;
+  /** When the prices were checked, YYYY-MM-DD. */
+  checked: string;
   note: string;
 }
 
@@ -234,7 +239,11 @@ export function toBatteries(rows: CsvRow[]): Battery[] {
 export function toTariffs(rows: CsvRow[]): Tariff[] {
   return rows.map((r) => ({
     scenario: r.scenario,
-    label: r.label,
+    supplier: r.supplier,
+    contract: r.contract,
+    label: `${r.supplier}, ${r.contract.toLowerCase()}`,
+    sourceUrl: r.source_url,
+    checked: r.checked,
     importEurKwh: Number(r.import_eur_kwh),
     netExportEurKwh: Number(r.net_export_eur_kwh),
     note: r.note,

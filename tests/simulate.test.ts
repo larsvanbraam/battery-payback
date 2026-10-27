@@ -114,7 +114,7 @@ test('sample data loads, ranks every battery and adds up per day', () => {
   const read = (f: string) => parseCsv(readFileSync(new URL(`../public/data/${f}`, import.meta.url), 'utf8'));
   const hours = toHours(read('sample-hourly.csv'));
   const batteries = toBatteries(read('batteries.csv'));
-  const tariff = toTariffs(read('eneco-2027-tariffs.csv')).find((t) => t.scenario === 'eneco_1y')!;
+  const tariff = toTariffs(read('tariffs-2027.csv')).find((t) => t.scenario === 'eneco_1y')!;
   assert.equal(hours.length, 8760);
   assert.ok(batteries.length >= 5);
 
