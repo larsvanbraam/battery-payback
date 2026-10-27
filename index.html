@@ -8,7 +8,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&display=swap">
   <script type="module" src="/src/main.ts"></script>
 </head>
 <body class="loading">
@@ -18,19 +18,51 @@
         <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="17" height="12" rx="2"/><rect x="20" y="10" width="2" height="4" rx="1"/><rect class="mark-fill" x="4" y="8" width="8" height="8" rx="1"/></svg>
         <span>Battery payback</span>
       </a>
+      <nav class="start-nav start-only" aria-label="Sections">
+        <a href="#get-data">Get your data</a>
+        <a href="#sample" data-use-sample>Sample household</a>
+        <button type="button" class="btn" id="start-back" hidden>Back to my results</button>
+      </nav>
       <span class="scope app-only" id="data-badge">Sample household</span>
       <span class="topbar-meta app-only" id="topbar-period"></span>
       <button type="button" class="btn btn-primary app-only" id="open-data">Load your data</button>
     </div>
   </header>
 
-  <main id="start" class="canvas start" hidden>
-    <div class="start-head">
-      <h1>Which battery pays for itself</h1>
-      <p class="finding">Load a year of your own hourly meter data and see, battery by battery, what it saves once saldering ends on 1 January 2027 and when it has paid for itself. Your data stays in your browser.</p>
-      <button type="button" class="btn" id="start-back" hidden>Back to the results</button>
-    </div>
-    <div id="start-slot"></div>
+  <main id="start" class="start" hidden>
+    <section class="ch ch-noon" aria-labelledby="start-title">
+      <svg class="sun" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="50"/></svg>
+      <div class="ch-grid hero">
+        <h1 id="start-title" data-reveal="1"><span class="nowrap" id="hero-noon">4 ct at noon,</span> <span class="nowrap" id="hero-night">29 ct tonight</span></h1>
+        <p class="lead" data-reveal="2">Saldering ends on 1 January 2027. See which home battery moves your noon into your evening and pays for itself, worked out from a year of your own meter data.</p>
+        <div class="hero-actions">
+          <a class="cta cta-night" href="#get-data" data-reveal="3">Load my meter data</a>
+          <a class="text-link" href="#sample" data-use-sample data-reveal="4">or explore a sample household</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="ch ch-night" id="get-data" aria-labelledby="get-data-title">
+      <div class="ch-grid night-top">
+        <h2 id="get-data-title" class="night-title" data-reveal="1">Get your own numbers</h2>
+        <ol class="night-steps" data-reveal="2">
+          <li>Drag the yellow line below to your bookmarks bar. <span class="soft">No bar? Ctrl+Shift+B, or ⌘+Shift+B on a Mac.</span></li>
+          <li><a class="js-provider-login" href="#" target="_blank" rel="noopener">Open your account</a> and log in.</li>
+          <li>Click the bookmark. It reads your hourly use inside your own browser and opens your results here. Nothing passes through this site's server.</li>
+        </ol>
+      </div>
+      <div class="ch-grid night-line" data-reveal="4">
+        <div class="segmented js-provider-tabs" role="group" aria-label="Energy supplier"></div>
+        <div class="import-progress js-progress" role="status" hidden><progress class="js-progress-bar"></progress><span class="js-progress-text"></span></div>
+        <p class="error js-error" role="alert" hidden></p>
+        <a class="sunline js-bookmarklet" href="#">Get my data</a>
+        <p class="js-bookmarklet-hint hint-line" hidden>Drag it to your bookmarks bar, then click it on the <span class="provider-name"></span> website.</p>
+      </div>
+      <div class="ch-grid night-meta" data-reveal="5">
+        <label class="file-link">Or upload an hourly CSV <input class="js-file" type="file" accept=".csv,text/csv"></label>
+        <a class="text-link" href="#sample" data-use-sample>Explore the sample household</a>
+      </div>
+    </section>
   </main>
 
   <main id="app" class="canvas" hidden>
@@ -281,32 +313,32 @@
       <h2 id="data-card-title">Your meter data</h2>
       <button type="button" class="btn" id="close-data">Close</button>
     </div>
-    <div class="import-panel" id="import-panel">
-    <div class="import-progress" id="import-progress" role="status" hidden>
-      <progress id="import-bar"></progress>
-      <span id="import-progress-text"></span>
+    <div class="import-panel">
+    <div class="import-progress js-progress" role="status" hidden>
+      <progress class="js-progress-bar"></progress>
+      <span class="js-progress-text"></span>
     </div>
-    <p class="error" id="data-error" role="alert" hidden></p>
+    <p class="error js-error" role="alert" hidden></p>
     <div class="import-options">
       <div class="import-option">
         <h3>Fetch a year of hourly data from your supplier</h3>
-        <div class="segmented" id="provider-tabs" role="group" aria-label="Energy supplier"></div>
+        <div class="segmented js-provider-tabs" role="group" aria-label="Energy supplier"></div>
         <ol class="steps">
           <li>Drag this button to your bookmarks bar:
-            <a class="bookmarklet" id="bookmarklet" href="#">Get my data</a>
-            <span class="hint" id="bookmarklet-hint" hidden>Drag it, don't click it: it only works from the bookmarks bar, on the <span class="provider-name"></span> website.</span>
+            <a class="bookmarklet js-bookmarklet" href="#">Get my data</a>
+            <span class="hint js-bookmarklet-hint" hidden>Drag it, don't click it: it only works from the bookmarks bar, on the <span class="provider-name"></span> website.</span>
             <span class="hint">No bookmarks bar? Press Ctrl+Shift+B, or ⌘+Shift+B on a Mac.</span>
           </li>
-          <li><a id="provider-login" href="#" target="_blank" rel="noopener">Open your account</a> and log in.</li>
+          <li><a class="js-provider-login" href="#" target="_blank" rel="noopener">Open your account</a> and log in.</li>
           <li>Click the bookmark. It reads your hourly usage from <span class="provider-name"></span> inside your own browser and opens the results here. Your login and data never pass through this site's server.</li>
         </ol>
         <p class="hint">Next time, click the bookmark again and only the new days are fetched. More suppliers will follow.</p>
       </div>
       <div class="import-option">
         <h3>Or upload a file</h3>
-        <label class="file" for="hourly-file">Hourly CSV
+        <label class="file">Hourly CSV
           <span class="hint">Columns timestamp, import_kwh and export_kwh, one row per hour.</span>
-          <input id="hourly-file" type="file" accept=".csv,text/csv">
+          <input class="js-file" type="file" accept=".csv,text/csv">
         </label>
       </div>
       <div class="import-option">

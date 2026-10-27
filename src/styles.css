@@ -1,21 +1,26 @@
-/* Achromatic ledger: the chrome is ink on a blue-grey meter ground, white panels with 1px edges and no
-   shadows. The one hue (--data) marks the battery's own figures and marks; everything else is ink or grey.
+/* Achromatic ledger (taste skill app style), with the start page's face: Chivo, a pale noon-sky ground,
+   night ink, and the sun's yellow as the one data colour: the battery's own figures and marks. White
+   panels with 1px edges and no shadows. The flow strip repeats the start page's noon, sun and night.
    Grid: one centred 1152px column, 16px gutter. Two-up rows are 2 × 568 + 16 = 1152; the lead row is
    752 + 16 + 384 = 1152. */
 :root {
-  --ground: #f2f4f7;
+  --ground: #e4edf2;
   --surface: #ffffff;
-  --raised: #eef0f3;
-  --active: #e5e5e5;
-  --border: #e3e6ea;
-  --rule: #eef0f2;
+  --raised: #eef3f6;
+  --active: #dde6ec;
+  --border: #d6e1e8;
+  --rule: #e9eef1;
   --control: #d0d4d9;
-  --text: #0a0a0a;
-  --muted: #5f6368;
-  --primary: #141414;
-  --data: #1d5fbf;
-  --data-pale: #e3ecf9;
-  --series-ink: #141414;
+  --text: #121a26;
+  --muted: #4d5966;
+  --primary: #121a26;
+  --data: #9a6c00;
+  --data-pale: #fdf1c9;
+  --noon: #bcd2df;
+  --sun: #f2b705;
+  --night: #121a26;
+  --night-ink: #ededec;
+  --series-ink: #121a26;
   --series-grey: #b8bcc2;
   --positive: #2e7d32;
   --negative: #c4242a;
@@ -29,24 +34,26 @@
   --gap: 16px;
   --pad: 20px;
   --control-height: 36px;
-  --font: "Geist", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Chivo", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ground: #000000;
-    --surface: #111111;
-    --raised: #1a1a1a;
-    --active: #222222;
-    --border: #2e2e2e;
-    --rule: #1c1c1c;
+    --ground: #0b1119;
+    --surface: #121a26;
+    --raised: #1a2432;
+    --active: #223040;
+    --border: #26334a;
+    --rule: #1c2635;
     --control: #444444;
     --text: #ffffff;
     --muted: #b4b4b4;
     --primary: #ffffff;
-    --data: #6ea2f0;
-    --data-pale: #172338;
+    --data: #f2b705;
+    --data-pale: #2b2510;
+    --noon: #2a3e4f;
+    --night: #05080d;
     --series-ink: #e6e6e6;
     --series-grey: #555a60;
     --positive: #3fc07a;
@@ -81,10 +88,10 @@ body.loading .canvas { opacity: .55; }
   max-width: calc(1152px + 2 * 24px); margin-inline: auto; padding: 0 24px; height: 52px;
   display: flex; align-items: center; gap: 12px;
 }
-.brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-weight: 700; font-size: 15px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none; font-weight: 900; font-size: 16px; text-transform: uppercase; letter-spacing: -0.03em; }
 .mark { width: 22px; height: 22px; fill: none; stroke: var(--text); stroke-width: 1.5; }
 .mark rect:nth-child(2) { fill: var(--text); stroke: none; }
-.mark .mark-fill { fill: var(--data); stroke: none; }
+.mark .mark-fill { fill: var(--sun); stroke: none; }
 .scope { font-size: 12px; padding: 2px 8px; border-radius: var(--radius-chip); background: var(--active); color: var(--text); white-space: nowrap; }
 .scope.own { background: var(--data-pale); color: var(--data); }
 .topbar-meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -97,9 +104,9 @@ body.loading .canvas { opacity: .55; }
 
 /* Title row */
 .title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 32px; padding-bottom: 8px; }
-h1 { margin: 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -0.01em; }
+h1 { margin: 0; font-size: 30px; line-height: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.04em; }
 .finding { margin: 6px 0 0; max-width: 70ch; font-size: 16px; line-height: 24px; }
-.finding strong { font-weight: 700; color: var(--data); }
+.finding strong { font-weight: 700; background: var(--sun); color: var(--night); padding: 0 4px; }
 .notice { margin: 10px 0 0; display: inline-block; font-size: 13px; padding: 6px 10px; border-radius: var(--radius-control); background: var(--notice-bg); border: 1px solid var(--notice-line); color: var(--notice-ink); }
 .title-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .field-label { font-size: 12px; color: var(--muted); }
@@ -211,25 +218,30 @@ input[type="file"] { font: inherit; font-size: 13px; max-width: 100%; }
 .kpi-label { font-size: 13px; color: var(--muted); }
 .kpi-value { font-size: 24px; line-height: 32px; font-weight: 400; }
 .kpi-value.money { font-weight: 700; }
-.kpi.lead .kpi-value { font-size: 32px; line-height: 40px; color: var(--data); }
+.kpi.lead .kpi-value { font-size: 36px; line-height: 40px; color: var(--text); font-weight: 900; letter-spacing: -0.03em; }
 .kpi-value.small { font-size: 20px; line-height: 28px; }
 .kpi-sub { font-size: 12px; color: var(--muted); }
 .kpi-sub.better { color: var(--positive); }
 .kpi-sub.worse { color: var(--negative); }
 
 /* Power flow over the year: four nodes, the battery's links in the data hue. */
-.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--raised); border-radius: var(--radius-control); }
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border-radius: var(--radius-control); }
 .flow-node { position: relative; padding: 14px 16px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .flow-node + .flow-node::before {
   content: ""; position: absolute; left: -7px; top: 22px; width: 12px; height: 12px;
   border-top: 2px solid var(--data); border-right: 2px solid var(--data); transform: rotate(45deg);
 }
-.flow-node.idle::before { border-color: var(--series-grey); }
-.flow-label { font-size: 13px; color: var(--muted); }
-.flow-value { font-size: 20px; line-height: 28px; }
-.flow-value small, .kpi-value small { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 2px; }
-.flow-node.battery .flow-value { color: var(--data); }
-.flow-sub { font-size: 12px; color: var(--muted); }
+.flow-node + .flow-node::before { z-index: 1; border-color: var(--night); }
+.flow-label { font-size: 13px; }
+.flow-value { font-size: 22px; line-height: 30px; font-weight: 700; }
+.flow-value small, .kpi-value small { font-size: 13px; font-weight: 400; margin-left: 2px; }
+.kpi-value small { color: var(--muted); }
+.flow-sub { font-size: 12px; }
+.flow-node.tone-noon { background: var(--noon); color: #121a26; }
+.flow-node.tone-sun { background: var(--sun); color: #121a26; }
+.flow-node.tone-night { background: var(--night); color: var(--night-ink); }
+.flow-node.tone-night .flow-value { color: var(--sun); }
+.flow-node.tone-night + .flow-node::before { border-color: var(--sun); }
 
 /* What-if */
 .whatif-body { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 32px; }
@@ -314,17 +326,6 @@ line.rule { stroke: var(--muted); stroke-dasharray: 3 3; }
 .import-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13px; }
 .import-progress progress { flex: 1 1 160px; max-width: 320px; accent-color: var(--data); }
 .data-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-
-/* Start screen: shown until there's data to look at. The same import panel moves into the dialog later. */
-body.on-start .app-only { display: none; }
-.start { gap: 24px; }
-.start-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; max-width: 70ch; }
-.start-head .finding { margin: 0; }
-.start .import-options { gap: var(--gap); align-items: stretch; }
-.start .import-option {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--pad);
-}
-.start .import-option:first-child { border-color: var(--data); }
 
 /* Tablet and phone */
 @media (max-width: 1100px) {

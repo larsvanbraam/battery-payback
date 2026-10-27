@@ -1,0 +1,118 @@
+/* Start screen: colour chapters (taste skill direction, seed 899821080). Two chapters of a solar
+   household's day: noon sky with the sun as the giant cropped shape, then night, where the sun's
+   yellow comes back as the bookmark you drag: stored sunlight. One face (Chivo), round buttons. */
+:root {
+  --noon: #bcd2df;
+  --sun: #f2b705;
+  --night: #121a26;
+  --paper: #f4f4f2;
+  --night-soft: #3b4652;
+  --pale: #ededec;
+  --pale-soft: #e3e6e9;
+  --m: clamp(20px, 3vw, 40px);
+  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-h2: clamp(2.25rem, 1rem + 3.6vw, 4.25rem);
+  --face: "Chivo", system-ui, sans-serif;
+}
+
+body:not(.on-start) .start-only { display: none; }
+body.on-start .app-only { display: none; }
+body.on-start { background: var(--noon); }
+body.on-start .topbar { background: var(--noon); border-bottom: 0; font-family: var(--face); }
+body.on-start .topbar-inner { max-width: none; padding: 0 var(--m); height: 72px; }
+body.on-start .brand { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.03em; color: var(--night); }
+.start-nav { margin-left: auto; display: flex; align-items: center; gap: 28px; }
+.start-nav a { color: var(--night); font-weight: 700; font-size: 16px; text-decoration: none; }
+.start-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+.start { font-family: var(--face); color: var(--night); font-size: var(--step-body); line-height: 1.45; letter-spacing: -0.01em; }
+.start h1, .start h2 { font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; line-height: 0.88; margin: 0; }
+.start p { margin: 0; }
+.ch { position: relative; overflow: hidden; min-height: 90svh; padding: clamp(80px, 12vh, 140px) var(--m); }
+.ch-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; position: relative; }
+.nowrap { white-space: nowrap; }
+
+.cta {
+  display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; border-radius: 999px;
+  font-weight: 700; font-size: var(--step-body); text-decoration: none; transition: transform .15s ease;
+}
+.cta:hover { transform: translateY(-2px); }
+.cta:active { transform: translateY(1px); }
+.cta-night { background: var(--night); color: var(--paper); }
+.text-link { color: inherit; font-weight: 700; text-underline-offset: 4px; }
+.text-link:hover { text-decoration-thickness: 2px; }
+
+/* Noon: the sun enters from the right, cropped by the top, right and bottom edges. */
+.ch-noon { background: var(--noon); display: flex; align-items: center; min-height: calc(100svh - 72px); padding-top: 40px; }
+.sun {
+  position: absolute; width: 120vh; height: 120vh; fill: var(--sun);
+  left: max(calc(78% - 60vh), 56%); top: calc(55% - 60vh);
+}
+.hero { width: 100%; }
+.hero h1 { grid-column: 1 / 8; font-size: clamp(56px, 6vw, 104px); }
+.hero .lead { grid-column: 1 / 7; margin-top: 40px; font-size: var(--step-lead); line-height: 1.4; max-width: 38ch; }
+.hero-actions { grid-column: 1 / 7; margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+
+/* Night: the way in is the display line, in the sun's yellow. */
+.ch-night { background: var(--night); color: var(--pale); display: flex; flex-direction: column; gap: 56px; padding-bottom: 40px; }
+.ch-night .soft { color: var(--pale-soft); }
+.night-top { align-items: start; row-gap: 32px; }
+.night-title { grid-column: 1 / 7; font-size: var(--step-h2); }
+.night-steps { grid-column: 7 / 13; margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 12px; max-width: 60ch; }
+.night-steps a { color: var(--sun); font-weight: 700; }
+.night-line { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.ch-night .segmented { background: var(--night-soft); }
+.ch-night .segmented button { color: var(--pale-soft); }
+.ch-night .segmented button[aria-pressed="true"] { background: var(--pale); color: var(--night); }
+.sunline {
+  font-weight: 900; text-transform: uppercase; letter-spacing: -0.045em; line-height: 0.9;
+  font-size: clamp(44px, 7.4vw, 128px); color: var(--sun); text-decoration: none; cursor: grab; max-width: 100%;
+  transition: transform .2s ease;
+}
+.sunline:hover { transform: translateX(8px); }
+.sunline:active { cursor: grabbing; }
+.hint-line { font-size: var(--step-body); color: var(--sun); }
+.ch-night .import-progress { color: var(--pale); }
+.ch-night .error { color: #ff9c8f; }
+.night-meta { align-items: baseline; row-gap: 12px; font-size: var(--step-small); color: var(--pale-soft); }
+.file-link { grid-column: 1 / 4; color: var(--pale); font-weight: 700; cursor: pointer; }
+.file-link input { display: block; margin-top: 6px; font: inherit; font-size: 14px; font-weight: 400; color: var(--pale-soft); max-width: 100%; }
+.night-meta .text-link { grid-column: 4 / 7; color: var(--pale); }
+
+/* Motion: the sun rises once (the signature move), each chapter's parts rise in. Only with script. */
+.js .start [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1); }
+.js .start .is-in [data-reveal] { opacity: 1; transform: none; }
+.js .start .is-in [data-reveal="2"] { transition-delay: .08s; }
+.js .start .is-in [data-reveal="3"] { transition-delay: .16s; }
+.js .start .is-in [data-reveal="4"] { transition-delay: .24s; }
+.js .start .is-in [data-reveal="5"] { transition-delay: .32s; }
+.js .sun { animation: sunrise 1.8s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes sunrise { from { transform: translateY(14vh); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .js .start [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .js .sun { animation: none; }
+}
+
+/* Tablet: the sun sets below the headline, so it never sits under the type. */
+@media (max-width: 1000px) {
+  .ch-noon { align-items: flex-start; min-height: 100svh; padding-top: 12svh; }
+  .sun { width: 110vw; height: 110vw; left: calc(50% - 55vw); top: 62svh; }
+  .hero h1 { grid-column: 1 / 13; }
+  .hero .lead, .hero-actions { grid-column: 1 / 10; }
+  .night-title, .night-steps { grid-column: 1 / 13; }
+  .file-link, .night-meta .text-link { grid-column: 1 / 13; }
+}
+
+/* Phone */
+@media (max-width: 640px) {
+  body.on-start .topbar-inner { height: 56px; }
+  .start-nav a:first-child { display: none; }
+  .ch-noon { padding-top: 15svh; }
+  .sun { width: 130vw; height: 130vw; left: calc(50% - 65vw); top: 66svh; }
+  .hero h1 { font-size: 11.5vw; }
+  .hero .lead { grid-column: 1 / 13; font-size: 17px; margin-top: 24px; }
+  .hero-actions { grid-column: 1 / 13; margin-top: 24px; }
+  .sunline { font-size: 8.4vw; }
+}

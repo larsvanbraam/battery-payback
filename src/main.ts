@@ -1,4 +1,5 @@
 import './styles.css';
+import './start.css';
 import {
   parseCsv, toBatteries, toTariffs, simulateAllSizes, compare, rankBatteries,
   monthlyBreakdown, dailyProfile, dailySavings, contractView, rteAt, projectYears, meterPrice,
@@ -6,6 +7,7 @@ import {
 } from './simulate.ts';
 import { fmt, sizeChart, monthlyChart, profileChart, dailyChart, balanceChart } from './charts.ts';
 import { bindImport, initialData, renderDataStatus, type LoadedData } from './import.ts';
+import { initStart } from './start.ts';
 
 const DEFAULT_SCENARIO = 'eneco_3y';
 const DEFAULT_BATTERY = 'homewizard';
@@ -348,9 +350,10 @@ function renderFlow() {
   const sim = sims.find((s) => s.units === state.units)!;
   const charged = base.exportKwh - sim.exportKwh;
   const useful = base.importKwh - sim.importKwh;
-  const node = (label: string, kwh: number, sub: string, battery = false) => {
+  // The start page's day: noon's surplus, the sun stored in the battery, the evening it covers.
+  const node = (label: string, kwh: number, sub: string, tone: 'noon' | 'sun' | 'night') => {
     const div = document.createElement('div');
-    div.className = 'flow-node' + (battery ? ' battery' : '');
+    div.className = `flow-node tone-${tone}`;
     const l = document.createElement('span');
     l.className = 'flow-label';
     l.textContent = label;
@@ -366,10 +369,10 @@ function renderFlow() {
     return div;
   };
   $('flow').replaceChildren(
-    node('Solar left over', base.exportKwh, 'Without a battery all of it goes to the grid'),
-    node('Into the battery', charged, `${pct(base.exportKwh ? charged / base.exportKwh : 0)} of the surplus`, true),
-    node('Back to your house', useful, `${fmt.kwh(charged - useful)} kWh lost to heat and standby`, true),
-    node('Still sent to the grid', sim.exportKwh, `Earns ${(state.netExportEurKwh * 100).toFixed(2)} ct per kWh`),
+    node('Solar left over at noon', base.exportKwh, 'Without a battery all of it goes to the grid', 'noon'),
+    node('Into the battery', charged, `${pct(base.exportKwh ? charged / base.exportKwh : 0)} of the surplus`, 'sun'),
+    node('Back to your house tonight', useful, `${fmt.kwh(charged - useful)} kWh lost to heat and standby`, 'night'),
+    node('Still sent to the grid', sim.exportKwh, `Earns ${(state.netExportEurKwh * 100).toFixed(2)} ct per kWh`, 'noon'),
   );
 }
 
@@ -641,12 +644,13 @@ async function init() {
     bindControls();
     bindSourceTips();
     renderWhatIfControls();
+    initStart(state.tariffs.find((t) => t.scenario === DEFAULT_SCENARIO) ?? state.tariffs[0]);
     // Shows the results when there's data to show, otherwise the start screen.
     bindImport(useData, data);
     document.body.classList.remove('loading');
   } catch (err) {
     $('start').hidden = false;
-    $('start-slot').textContent = err instanceof Error ? err.message : String(err);
+    $('start-title').textContent = err instanceof Error ? err.message : String(err);
   }
 }
 

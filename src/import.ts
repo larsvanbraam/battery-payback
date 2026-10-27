@@ -1,7 +1,8 @@
 // Where the hourly data comes from: the sample household, a CSV the visitor uploads, or a bookmarklet
 // that fetches it from the visitor's energy provider in their own browser. Whatever the visitor loads is
 // remembered in this browser only, so the page shows their own numbers next time. Until something is
-// loaded the page shows a start screen with those three choices; later the same panel opens as a dialog.
+// loaded the page shows a start screen; later the same controls open as a dialog. Both copies of each
+// control are found by a js-* class and kept in step.
 import { CHANNEL, parseBookmarkletMessage, type HourRow } from './bookmarklet/protocol.ts';
 import {
   clearDataset, haveUntil, loadDataset, mergeRows, saveDataset, toCsv, toHourObjects, toRows, type Dataset,
@@ -25,24 +26,17 @@ const $ = (id: string) => document.getElementById(id)!;
 const dialog = () => $('data-card') as HTMLDialogElement;
 const SAMPLE_HASH = '#sample';
 
-/** Whether the results behind the start screen have data, so "Back to the results" can show. */
+const all = <T extends HTMLElement = HTMLElement>(cls: string) => [...document.querySelectorAll<T>(`.${cls}`)];
+
+/** Whether the results behind the start screen have data, so "Back to my results" can show. */
 let hasData = false;
 
-// One import panel, moved to wherever it's needed, so its state (progress, errors) goes with it.
-function placePanel(where: 'start' | 'dialog') {
-  const panel = $('import-panel');
-  if (where === 'start') $('start-slot').append(panel);
-  else dialog().querySelector('.sheet-head')!.after(panel);
-}
-
 function openDialog() {
-  placePanel('dialog');
   if (!dialog().open) dialog().showModal();
 }
 
 export function showStart() {
   if (dialog().open) dialog().close();
-  placePanel('start');
   $('start-back').hidden = !hasData;
   $('start').hidden = false;
   $('app').hidden = true;
@@ -77,18 +71,21 @@ export async function initialData(): Promise<LoadedData | null> {
 }
 
 function showError(message: string | null) {
-  $('data-error').textContent = message ?? '';
-  $('data-error').hidden = !message;
+  for (const el of all('js-error')) {
+    el.textContent = message ?? '';
+    el.hidden = !message;
+  }
 }
 
 function showProgress(text: string | null, done = 0, total = 0) {
-  $('import-progress').hidden = text === null;
-  $('import-progress-text').textContent = text ?? '';
-  const bar = $('import-bar') as HTMLProgressElement;
-  if (total) {
-    bar.max = total;
-    bar.value = done;
-  } else bar.removeAttribute('value');
+  for (const el of all('js-progress')) el.hidden = text === null;
+  for (const el of all('js-progress-text')) el.textContent = text ?? '';
+  for (const bar of all<HTMLProgressElement>('js-progress-bar')) {
+    if (total) {
+      bar.max = total;
+      bar.value = done;
+    } else bar.removeAttribute('value');
+  }
 }
 
 export function renderDataStatus(data: LoadedData) {
@@ -121,33 +118,40 @@ function accept(dataset: Dataset, onData: OnData) {
 }
 
 function renderProviders() {
-  const tabs = $('provider-tabs');
-  tabs.hidden = PROVIDERS.length < 2;
   const select = (p: Provider) => {
-    for (const b of tabs.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.id === p.id));
-    const link = $('bookmarklet') as HTMLAnchorElement;
-    link.href = bookmarkletHref(p, location.origin);
-    link.textContent = `Get my ${p.name} data`;
-    const login = $('provider-login') as HTMLAnchorElement;
-    login.href = p.loginUrl;
-    login.textContent = `Open ${p.where}`;
+    for (const b of document.querySelectorAll<HTMLElement>('.js-provider-tabs button')) {
+      b.setAttribute('aria-pressed', String(b.dataset.id === p.id));
+    }
+    for (const link of all<HTMLAnchorElement>('js-bookmarklet')) {
+      link.href = bookmarkletHref(p, location.origin);
+      link.textContent = `Get my ${p.name} data`;
+    }
+    for (const login of all<HTMLAnchorElement>('js-provider-login')) {
+      login.href = p.loginUrl;
+      login.textContent = `Open ${p.where}`;
+    }
     for (const el of document.querySelectorAll('.provider-name')) el.textContent = p.name;
   };
-  tabs.replaceChildren(...PROVIDERS.map((p) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.dataset.id = p.id;
-    b.textContent = p.name;
-    b.addEventListener('click', () => select(p));
-    return b;
-  }));
+  for (const tabs of all('js-provider-tabs')) {
+    tabs.hidden = PROVIDERS.length < 2;
+    tabs.replaceChildren(...PROVIDERS.map((p) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.id = p.id;
+      b.textContent = p.name;
+      b.addEventListener('click', () => select(p));
+      return b;
+    }));
+  }
   select(PROVIDERS[0]);
 
   // Clicking the bookmarklet here would run it on this page; it only works from the bookmarks bar.
-  $('bookmarklet').addEventListener('click', (ev) => {
-    ev.preventDefault();
-    $('bookmarklet-hint').hidden = false;
-  });
+  for (const link of all('js-bookmarklet')) {
+    link.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      for (const hint of all('js-bookmarklet-hint')) hint.hidden = false;
+    });
+  }
 }
 
 // The page was opened by a bookmarklet: tell it what we already have, then take its data.
@@ -214,19 +218,20 @@ export function bindImport(show: OnData, initial: LoadedData | null) {
     });
   }
 
-  const file = $('hourly-file') as HTMLInputElement;
-  file.addEventListener('change', async () => {
-    const f = file.files?.[0];
-    if (!f) return;
-    showError(null);
-    try {
-      const rows = toRows(toHours(parseCsv(await f.text())));
-      accept({ version: 1, source: 'file', label: f.name, updatedAt: new Date().toISOString(), rows: mergeRows([], rows) }, onData);
-    } catch (err) {
-      showError(err instanceof Error ? err.message : String(err));
-    }
-    file.value = '';
-  });
+  for (const file of all<HTMLInputElement>('js-file')) {
+    file.addEventListener('change', async () => {
+      const f = file.files?.[0];
+      if (!f) return;
+      showError(null);
+      try {
+        const rows = toRows(toHours(parseCsv(await f.text())));
+        accept({ version: 1, source: 'file', label: f.name, updatedAt: new Date().toISOString(), rows: mergeRows([], rows) }, onData);
+      } catch (err) {
+        showError(err instanceof Error ? err.message : String(err));
+      }
+      file.value = '';
+    });
+  }
 
   $('download-data').addEventListener('click', () => {
     const stored = loadDataset();
