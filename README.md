@@ -4,7 +4,7 @@
 
 Which home battery pays for itself on your own meter data, once saldering ends in 2027? The page replays a year of hourly grid use and solar surplus through several home batteries (HomeWizard, Marstek, Zendure, Anker, EcoFlow, Sessy), each at every size it comes in, ranks them by profit over their lifetime, and shows what the chosen one saves per year, month and day.
 
-Built with Vite and TypeScript. The only runtime dependency is Vercel Analytics. It's a static site, so it deploys to Vercel (or any static host) with no server code.
+Built with Vite and TypeScript, as a static site with no server code. The only runtime dependency is Vercel Analytics.
 
 ![The results for the sample household: the battery ranking, then the chosen battery's yearly saving and where its solar power goes](docs/screenshot.png)
 
@@ -45,17 +45,6 @@ The share image and icons in `public/` are rendered from `scripts/og/`; [scripts
   --window-size=1440,1280 --virtual-time-budget=10000 \
   --screenshot=docs/screenshot.png https://battery-payback.larsvanbraam.nl/sample
 ```
-
-## Deploy to Vercel
-
-Import the repository in Vercel. It detects Vite and builds with `npm run build` into `dist/`. `vercel.json` sends every path that isn't a file to `index.html`, so links like `/sample` survive a reload.
-
-| Environment variable | What it does |
-| --- | --- |
-| `SITE_URL` | Optional. The site's absolute address, for example `https://battery-payback.larsvanbraam.nl`. It's filled in for `%SITE_URL%` in `index.html` (canonical link, `og:url`, `og:image`), because share previews need full URLs. |
-| `VERCEL_PROJECT_PRODUCTION_URL` | Set by Vercel itself. Used when `SITE_URL` isn't set. Without either, the build uses the dev server's address. |
-
-Page views are counted with Vercel Analytics (`inject()` in `src/main.ts`); turn on Analytics for the project in Vercel to see them.
 
 ## Paths
 
@@ -119,7 +108,7 @@ Nothing here is stored except the loaded data; every setting starts from its def
 | `src/bookmarklet/` | Shared bookmarklet runtime and the message protocol with the page |
 | `src/providers/` | One folder per supplier, plus the dev-only demo |
 | `plugins/bookmarklet.ts` | Vite plugin that turns `?bookmarklet` imports into a minified script string |
-| `plugins/site-url.ts` | Vite plugin that fills `%SITE_URL%` in `index.html` |
+| `plugins/site-url.ts` | Vite plugin that fills `%SITE_URL%` in `index.html` for the share links, from the `SITE_URL` environment variable or else the Vercel production domain |
 | `public/data/` | Battery specs and prices, 2027 tariff presets, the sample household |
 | `scripts/generate-sample.ts` | Generates the sample household |
 | `scripts/og/` | Sources of the share image and home-screen icon |
