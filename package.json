@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "description": "Which home battery pays off on your own hourly meter data, once saldering ends in 2027.",
+  "license": "MIT",
+  "author": "Lars van Braam",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

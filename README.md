@@ -143,3 +143,7 @@ To refresh a figure, change it in the CSV and update its date column.
   - **Meter:** `meter` (what the battery needs to read the grid meter), `meter_eur` (0 when included), `homewizard_p1` (1 if a HomeWizard P1 meter can stand in for it) and `meter_source`.
   - **Size:** `size_cm` (one unit's outside size, for example `40 × 30 × 20`, in the order the source gives it), `weight_kg` and `size_source`.
   - **Provenance:** `capacity_source`, `efficiency_source` and `standby_source` (`tweakers`, `review`, `manufacturer` or `assumed`; `efficiency_source` can also be `tweakers_home`, a year measured at home, used at every power), `efficiency_by` and `standby_by` (who measured it, for `review`), `price_source`, `review_url`, `notes`.
+
+## License
+
+[MIT](LICENSE) © Lars van Braam. The figures in `public/data/` stay credited to the sources named in their source columns; see [Where the data comes from](#where-the-data-comes-from).
